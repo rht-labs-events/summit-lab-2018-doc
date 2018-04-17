@@ -1,60 +1,55 @@
-# Effectively monitor and troubleshoot your Openshift Cluster 
+### Overview
 
-## Overview
-
-Short description: Monitor your Openshift cluster in an effective way.
-
-Long description: During this session, the attendees will learn the key concepts around effectively monitoring a Production OpenShift Cluster and the best techniques to troubleshoot different issues with both the platform and the running containers. We will create different scenarios (real issues we have dealt with on different enterprise customers these years) and we will see how the monitoring tools handle those errors and how we can troubleshoot them to get our services back to production state.
-
-
-. This demonstration showcases the following:
+This demonstration showcases the following:
 
 * Recovering from etcd failures in real operational cluster.
 * Debug and recovery from failed build due infrastructure and build problems.
 * Debug and recover from Openshift scheduler issues. 
 * Debug and recover from binary build issues and deployments.
 
-. Goal
+#### Goal
 
 * To learn how we can effectively monitor our openshift cluster and proactively solve issues.
-* Lear how to debug and operate openshift cluster
+* Learn how to debug and operate openshift cluster
 
-. Prerequisites
+#### Prerequisites
 
 * Understanding of openshift concepts and working principals. 
 
-Current versions of products used:
+#### Versions of products used
 
-|Product |Version |
---------- | --------- |
-|`OpenShift Container Platform` |`3.7/3.9`
-|`Container Native Storate` |`3.3`
-|`Grafana` |
-|`Prometheus` |
-|`Alertmanager` |
+Product |Version 
+--------- | --------- 
+`OpenShift Container Platform` |`3.7/3.9`
+`Container Native Storate` |`3.3`
+`Grafana` |
+`Prometheus` |
+`Alertmanager` |
 
 ### Environment
 
 The demo environment consists of the following systems:
 
 
-|Hostname              |Internal IP    |Description |
----------------------- | -------------- | --------------- |
-|`bastion.example.com` |`192.168.0.5`  | Bastion host/Loadbalancer
-|`master1.example.com`  |`192.168.0.11` | Master 1
-|`master2.example.com`  |`192.168.0.12` | Master 2
-|`master3.example.com`  |`192.168.0.13` | Master 3
-|`infra1.example.com`  |`192.168.0.21` | Infra 1
-|`infra2.example.com`  |`192.168.0.22` | Infra 2
-|`infra3.example.com`  |`192.168.0.23` | Infra 3
-|`node1.example.com`  |`192.168.0.31` | Node 1
-|`node2.example.com`  |`192.168.0.32` | Node 2
-|`node3.example.com`  |`192.168.0.33` | Node 3
+Hostname              |Internal IP    |Description 
+---------------------- | -------------- | --------------- 
+`bastion.example.com` |`192.168.0.5`  | Bastion host/Loadbalancer
+`master1.example.com`  |`192.168.0.11` | Master 1
+`master2.example.com`  |`192.168.0.12` | Master 2
+`master3.example.com`  |`192.168.0.13` | Master 3
+`infra1.example.com`  |`192.168.0.21` | Infra 1
+`infra2.example.com`  |`192.168.0.22` | Infra 2
+`infra3.example.com`  |`192.168.0.23` | Infra 3
+`node1.example.com`  |`192.168.0.31` | Node 1
+`node2.example.com`  |`192.168.0.32` | Node 2
+`node3.example.com`  |`192.168.0.33` | Node 3
 
 
-NOTE: HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
+:green_book: bulb HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
 
-![alt text](labIntro/img/diagram.png)
+#### Architecture
+
+![alt text](img/diagram.png)
 
 You can ssh from bastion to any node from `root` to `root`.
 
@@ -66,20 +61,20 @@ Your environment contains few application, which will help you to know your clus
 
 Prometheus will scrape endpoints all over the environment and raises the alerts based on rules. Those alerts are passed to alertmanager for next distribution.
 
-![alt text](labIntro/img/prometheus.png)
+![alt text](img/prometheus.png)
 
 
 #### Alertmanager
 
 Alertmanager is used to aggregate alerts and dispatch them to the required delivery destination.
 
-![alt text](labIntro/img/alertmanager.png)
+![alt text](img/alertmanager.png)
 
 #### Grafana 
 
 Grafana is used to graphically represent cluster data. It interacts directly with prometheus as datasource.
 
- ![alt text](labIntro/img/grafana.png)
+ ![alt text](img/grafana.png)
 
 
 ### Provision Your Demo Environment
@@ -94,40 +89,39 @@ Grafana is used to graphically represent cluster data. It interacts directly wit
 
 . Read all of the information on the resulting page, check the necessary box, and click *Submit*.
 
-[IMPORTANT]
-====
+:bangbang: Important Note
+
 * It takes about 15-20 minutes for the demo to load completely and become accessible.
 ** Wait for the full demo to load, even if some of its systems are marked "Up."
 * Watch for an email with information about how to access your demo environment.
 ** Make note of the email's contents: a list of hostnames, IP addresses, and your GUID.
 ** Whenever you see GUID in the demo instructions, replace it with the GUID provided in the email.
 * You can get real-time updates of your demo environment at https://www.opentlc.com/rhpds-status.
-====
 
 
-[TIP]
------
+:heavy_check_mark: Tip
+
 Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especially important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
 
-## Getting Started
+### Getting Started
 
-. From a web browser, open URL below in its own window or tab, using `admin` for the username and `r3dh4t1!` for the password:
+From a web browser, open URL below in its own window or tab, using `admin` for the username and `r3dh4t1!` for the password:
 
-* *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com:`
+* *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 
+:heavy_check_mark: Tip
 
-[TIP]
 You can also find these URLs in the email you received when you provisioned the demo environment.
 
 
-## Review the Environment
+### Review the Environment
 
-. Once the OpenShift environment is up and running, log in to the *OpenShift Enterprise Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`, using these credentials:
-+
+Once the OpenShift environment is up and running, log in to the *OpenShift Enterprise Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`, using these credentials:
+
 * *Username*: `admin`
 * *Password*: `r3dh4t1!`
 
-If nothing is running on your cluster, give it some time. There is background service running, which is populating your cluster.
+:clock10: If nothing is running on your cluster, give it some time. There is background service running, which is populating your cluster.
 
 ### Lab Launcher
 
@@ -178,14 +172,16 @@ Pre-Deployed apps:
 
 You can get this windows again by executing `lab -h`
 
-
 You have pre-deployed application available for you, go and inspect them.
 
 Core tools we will be using in this labs are supported by Red Hat. Few other non-core ones are with community support. 
 
 Lab consist of number scenarios. They are independent, but we dont recommend to jump from one scenario to other without finishing previous one.
 
-All scenarios has few parts. 
-`part 1`   - Documentation and explanation of the scenario.
-`solution part 1` - Solution of the scenario.
-`appendix`- Materials, for further reading,
+### Info about the scenarios
+
+All scenarios has few parts
+
+* `part 1` - Documentation and explanation of the scenario.
+* `solution part 1` - Solution of the scenario.
+* `appendix`- Materials, for further reading,
