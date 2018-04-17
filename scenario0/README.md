@@ -289,10 +289,10 @@ Now you should see all 3 ETCD back online in Grafana and no alerts in prometheus
 
 #### Materials used in the scenario
 
-Openshift Documentation on ETCD recovery: 
-https://docs.openshift.com/container-platform/latest/admin_guide/backup_restore.html
+1. Openshift Documentation on ETCD recovery: 
+https://docs.openshift.com/container-platform/3.9/admin_guide/backup_restore.html
 
-Grafana dashboard and Prometheus alert rules: TODO: GitHub url to dashboards and alertmanager
+2. Grafana dashboard and Prometheus alert rules: TODO: GitHub url to dashboards and alertmanager
 
-Etcd (v2) admin guide:
+3. Etcd (v2) admin guide:
 https://coreos.com/etcd/docs/latest/v2/admin_guide.html 

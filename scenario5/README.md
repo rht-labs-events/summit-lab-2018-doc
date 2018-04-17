@@ -170,12 +170,15 @@ systemctl start atomic-openshift-node
 
 Check again Grafana, Prometheus and Alert Manager. You should not see any alerts.
 
-* Note that Alert Manager alerts usually take a while to disappear, so expect around 5-10 min delay.* 
-* 
+**Note:
+Alert Manager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+ 
 ### Appendix
 
 #### Materials used in the scenario
 
-[Openshift SDN Docs](https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.html)
+1. OpenShift SDN Docs:
+https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.html
 
-[SkyDive Docs](http://skydive-project.github.io/skydive/)
+2. SkyDive Docs:
+http://skydive-project.github.io/skydive/

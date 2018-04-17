@@ -253,8 +253,8 @@ and metrics from heketi: https://github.com/heketi/heketi/pull/1068
 
 #### Materials used in the scenario
 
-Container Native Storage user guide:
+1. Container Native Storage user guide:
 https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.3/html/container-native_storage_for_openshift_container_platform/
 
-Gluster rebalancing documentation:
+2. Gluster rebalancing documentation:
 https://access.redhat.com/documentation/en-US/Red_Hat_Storage/2.0/html/Administration_Guide/sect-User_Guide-Managing_Volumes-Rebalancing.html

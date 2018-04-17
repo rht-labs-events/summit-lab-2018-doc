@@ -186,7 +186,7 @@ lab -s 4 -a solve
 #### Materials used in the scenario
 
 1. Openshift routes guide:
-https://docs.openshift.com/container-platform/3.7/dev_guide/routes.html
+https://docs.openshift.com/container-platform/3.9/dev_guide/routes.html
 
 2. Openshift Binary build guide:
-https://docs.openshift.com/container-platform/3.7/dev_guide/dev_tutorials/binary_builds.html
+https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/binary_builds.html
