@@ -80,11 +80,11 @@ Alerts should become inactive, and grafana shows new state:
 
 #### Materials used in the scenario
 
-Openshift Documentation on ETCD recovery: 
+1. Openshift Documentation on ETCD recovery: 
 https://docs.openshift.com/container-platform/latest/admin_guide/backup_restore.html
 
-Grafana dashboard and Prometheus alert rules:
+2. Grafana dashboard and Prometheus alert rules:
 <insert link to public dasboard link>
 
-etcd (v2) admin guide:
+3. Etcd (v2) admin guide:
 https://coreos.com/etcd/docs/latest/v2/admin_guide.html 

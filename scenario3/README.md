@@ -249,7 +249,7 @@ lab -s 3 -a solve
 #### Materials used in the scenario
 
 1. Openshift Scheduler explained:
-https://docs.openshift.com/container-platform/3.7/admin_guide/scheduling/scheduler-advanced.html#admin-guide-scheduling-advanced
+https://docs.openshift.com/container-platform/3.9/admin_guide/scheduling/scheduler-advanced.html#admin-guide-scheduling-advanced
 
-2. Resource managment:
+2. OpenShift Resource managment:
 https://blog.openshift.com/managing-compute-resources-openshiftkubernetes/
