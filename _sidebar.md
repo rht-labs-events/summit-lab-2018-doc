@@ -5,3 +5,4 @@
 * [Scenario 3 - Scheduler](scenario3/README.md)
 * [Scenario 4 - Binary Builds](scenario4/README.md)
 * [Scenario 5 - SDN](scenario5/README.md)
+* [Scenario 6 - DNS](scenario6/README.md)
