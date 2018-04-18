@@ -2,25 +2,26 @@
 
 This demonstration showcases the following:
 
-* Recovering from etcd failures in real operational cluster.
+* Recovering from etcd failures in a real operational cluster.
 * Debug and recovery from failed build due infrastructure and build problems.
-* Debug and recover from Openshift scheduler issues. 
+* Debug and recover from OpenShift scheduler issues.
 * Debug and recover from binary build issues and deployments.
+* Debug and recover from an OpenShift node lost.
 
 #### Goal
 
-* To learn how we can effectively monitor our openshift cluster and proactively solve issues.
-* Learn how to debug and operate openshift cluster
+* To learn how we can effectively monitor our OpenShift cluster and proactively solve issues.
+* Learn how to debug and operate an OpenShift cluster
 
 #### Prerequisites
 
-* Understanding of openshift concepts and working principals. 
+* Understanding of OpenShift concepts and working principals.
 
 #### Versions of products used
 
 Product |Version 
 --------- | --------- 
-`OpenShift Container Platform` |`3.7/3.9`
+`OpenShift Container Platform` |`3.9`
 `Container Native Storate` |`3.3`
 `Grafana` |
 `Prometheus` |
@@ -51,15 +52,15 @@ Hostname              |Internal IP    |Description
 
 ![alt text](img/diagram.png)
 
-You can ssh from bastion to any node from `root` to `root`.
+* You can ssh from bastion to any node from `root` to `root`.
 
-When you ssh to lab using `lab-user`, you can `sudo su -` to get `root` access.
+* When you ssh to lab using `lab-user`, you can `sudo su -` to get `root` access.
 
-Your environment contains few application, which will help you to know your cluster state.
+* Your environment contains few application, which will help you to know your cluster state.
 
 #### Prometheus
 
-Prometheus will scrape endpoints all over the environment and raises the alerts based on rules. Those alerts are passed to alertmanager for next distribution.
+Prometheus will scrape endpoints all over the environment and raises the alerts based on rules. Those alerts are passed to Alertmanager for next distribution.
 
 ![alt text](img/prometheus.png)
 
@@ -70,32 +71,32 @@ Alertmanager is used to aggregate alerts and dispatch them to the required deliv
 
 ![alt text](img/alertmanager.png)
 
-#### Grafana 
+#### Grafana
 
-Grafana is used to graphically represent cluster data. It interacts directly with prometheus as datasource.
+Grafana is used to graphically represent cluster data. It interacts directly with Prometheus as datasource.
 
  ![alt text](img/grafana.png)
 
 
 ### Provision Your Demo Environment
 
-. If you have Red Hat Product Demo System access, log in to the link:https://rhpds.redhat.com/[Red Hat Product Demo System] with your SSO credentials.
+1. If you have Red Hat Product Demo System access, log in to the link:https://rhpds.redhat.com/[Red Hat Product Demo System] with your SSO credentials.
 
-. Go to *Services -> Catalogs -> Service Catalogs*.
+2. Go to *Services -> Catalogs -> Service Catalogs*.
 
-. Under *All Services -> AppDev in the Cloud*, select *Effectively monitor and troubleshoot your OCP Cluster*.
+3. Under *All Services -> AppDev in the Cloud*, select *Effectively monitor and troubleshoot your OCP Cluster*.
 
-. On the right, click *Order*.
+4. On the right, click *Order*.
 
-. Read all of the information on the resulting page, check the necessary box, and click *Submit*.
+5. Read all of the information on the resulting page, check the necessary box, and click *Submit*.
 
 :bangbang: Important Note
 
 * It takes about 15-20 minutes for the demo to load completely and become accessible.
-** Wait for the full demo to load, even if some of its systems are marked "Up."
+    * Wait for the full demo to load, even if some of its systems are marked "Up."
 * Watch for an email with information about how to access your demo environment.
-** Make note of the email's contents: a list of hostnames, IP addresses, and your GUID.
-** Whenever you see GUID in the demo instructions, replace it with the GUID provided in the email.
+    * Make note of the email's contents: a list of hostnames, IP addresses, and your GUID.
+    * Whenever you see GUID in the demo instructions, replace it with the GUID provided in the email.
 * You can get real-time updates of your demo environment at https://www.opentlc.com/rhpds-status.
 
 
@@ -121,11 +122,12 @@ Once the OpenShift environment is up and running, log in to the *OpenShift Enter
 * *Username*: `admin`
 * *Password*: `r3dh4t1!`
 
-:clock10: If nothing is running on your cluster, give it some time. There is background service running, which is populating your cluster.
+:clock10: If nothing is running on your cluster, give it some time. There is a background service running, which is populating your cluster.
 
 ### Lab Launcher
 
 Lab is being launched using command `lab`. It can be used only from the bastion host.
+
 Example:
 ```
 [root@workstation-repl summit]# lab -l
@@ -148,7 +150,7 @@ To init this scenario execute:
 
 ### CLI access
 
-Once environment is bootstrapped you should see all the welcome screen url replaces with the values:
+Once the environment is bootstrapped you should see all the welcome screen url replaces with the values:
 ```
 Information about Your current environment:
 Your GUID: repl
@@ -172,16 +174,17 @@ Pre-Deployed apps:
 
 You can get this windows again by executing `lab -h`
 
-You have pre-deployed application available for you, go and inspect them.
+You have pre-deployed applications available for you, go and inspect them.
 
-Core tools we will be using in this labs are supported by Red Hat. Few other non-core ones are with community support. 
+Core tools we will be using in this labs are supported by Red Hat. Few other non-core ones are with community support.
 
-Lab consist of number scenarios. They are independent, but we dont recommend to jump from one scenario to other without finishing previous one.
+Lab consist of number scenarios. They are independent, but we don't recommend to jump from one scenario to other without finishing previous one.
 
 ### Info about the scenarios
 
-All scenarios has few parts
+Every scenario has the following parts:
 
-* `part 1` - Documentation and explanation of the scenario.
-* `solution part 1` - Solution of the scenario.
-* `appendix`- Materials, for further reading,
+* `Introduction`: Documentation and explanation of the scenario.
+* `Tasks`: Tasks to be performed during the scenario.
+* `Solution`: Explanation of the actions that need to be taken to solve the scenario.
+* `Appendix`: Materials for further reading.
