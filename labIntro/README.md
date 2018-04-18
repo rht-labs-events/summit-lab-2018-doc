@@ -7,6 +7,7 @@ This demonstration showcases the following:
 * Debug and recover from OpenShift scheduler issues.
 * Debug and recover from binary build issues and deployments.
 * Debug and recover from an OpenShift node lost.
+* Debug and recover a node from DNS problems.
 
 #### Goal
 
