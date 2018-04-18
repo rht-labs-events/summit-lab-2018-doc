@@ -22,7 +22,17 @@ As a bonus, you will be introduced to SkyDive tool:
 
 * You could see all SDN pieces working together: pods, containers, namespaces, virtual switches, interfaces, etc.
 
-SkyDive console is pretty cool:
+SkyDive console is pretty cool. Get the route to the console from `skydive` namespace:
+
+```
+oc -n skydive get route
+NAME               HOST/PORT                                             PATH      SERVICES           PORT      TERMINATION   WILDCARD
+skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io             skydive-analyzer   api                     None
+```
+
+**NOTE:
+Skydive is exposed in port 80, so use http to access the route instead of https.**
+
 
 ![alt text](img/img2-skydive-general.png)
 
@@ -34,12 +44,12 @@ lab -s 5 -a init
 
 #### Lab Goal:
 
-*You can spend 1 or 2 minutes checking SkyDive console, just to see all SDN pieces working together.
+**You can spend 1 or 2 minutes checking SkyDive console, just to see all SDN pieces working together.**
 
-You won't need SkyDive to solve this scenario though ;). It is just a visualization tool. 
-*
+**You won't need SkyDive to solve this scenario though ;). It is just a visualization tool.**
 
-* Task 1: Identify why one of your nodes is down. Identify which one. Use Grafana dashboard `Labs Generic` and alert manager.
+
+* Task 1: Identify why one of your nodes is down. Identify which one. Use Grafana dashboard `Labs Generic` and Alertmanager.
 
 * Task 2: Make your node ready again. It seems like a connectivity problem, right? Try to start the service `atomic-openshift-node` and see what happens.
 
@@ -93,15 +103,15 @@ Conditions:
   Ready            True    Sat, 07 Apr 2018 09:10:47 -0400   Sat, 07 Apr 2018 07:02:55 -0400   KubeletReady                 kubelet is posting ready status                          
 ```
 
-Although should already know which node is down, you should also check Grafana, Prometheus and Alert Manager to get more info.
+Although you should already know which node is down, you should also check Grafana, Prometheus and Alertmanager to get more info.
 
-So open Grafana dashboard `Labs Generic` and check the `Nodes Down` panel. 
+So open Grafana dashboard `Labs Generic` and check the `Nodes Down` panel.
 
 You should see something like this:
 
 ![alt text](img/img3-grafana-nodes-down-panel.png)
 
-Now check both Prometheus and Alert Manager. You should have alerts in both:
+Now check both Prometheus and Alertmanager. You should have alerts in both:
 
 ![alt text](img/img1-alerts_alertmanager.png)
 
@@ -109,13 +119,11 @@ Note that apart from the "Node Down" alert you have two scheduler related alerts
 
 This a configured alert to raise un-even Pod distribution situations in your cluster nodes ;).
 
-
 ![alt text](img/img1-prometheus-alerts.png)
-
 
 Now that we now that node 2 is down, we have to discover what is not working properly.
 
-Let's ssh into it, and check the status of the `atomic-openshift-node`: 
+Let's ssh into it, and check the status of the `atomic-openshift-node`:
 
 ```
 ssh node2.example.com
@@ -128,7 +136,7 @@ As you can see, the service is stopped.
 
 No that we know what is happening, start the service again.
 
- ```
+```
 systemctl start atomic-openshift-node
 ```
 
@@ -168,10 +176,10 @@ systemctl start openvswitch
 systemctl start atomic-openshift-node
 ```
 
-Check again Grafana, Prometheus and Alert Manager. You should not see any alerts.
+Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
 **Note:
-Alert Manager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
  
 ### Appendix
 
