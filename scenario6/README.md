@@ -6,7 +6,7 @@ Lenght: 15 min
 Dashboards: Labs Generic
 ```
 
-In this lab we will simulate a common problem usually found in customers. DNS problems ;).
+On this lab we will simulate a common problem usually found in customers. DNS problems ;).
 Apps are very sensitive to DNS problems, which are hard to debug.
 
 If you want to know how DNS configuration works in OpenShift, have a look at this [article](https://www.redhat.com/en/blog/red-hat-openshift-container-platform-dns-deep-dive-dns-changes-red-hat-openshift-container-platform-36).
@@ -31,12 +31,12 @@ lab -s 6 -a init
 * Hint 1: dnsmasq is a key component of the OpenShift DNS architecture.
 
 
-If you want to skip these task, execute on the <b>bastion</b>:
+If you want to skip this task, execute on the <b>bastion</b>:
 ```
  lab -s 6 -a solve
 ```
 
-Useful command for this lab:
+Useful commands for this lab:
 
 ```
 systemctl status/stop <service_name>
@@ -90,7 +90,7 @@ ip a s eth0
     link/ether 2c:c2:60:0a:fc:82 brd ff:ff:ff:ff:ff:ff
     inet 192.168.0.31/16 brd 192.168.255.255 scope global dynamic eth0
        valid_lft 341277sec preferred_lft 341277sec
-    inet6 fe80::2ec2:60ff:fe0a:fc82/64 scope link 
+    inet6 fe80::2ec2:60ff:fe0a:fc82/64 scope link
        valid_lft forever preferred_lft forever
 
 ```
@@ -103,7 +103,7 @@ dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
 ....
 ```
 
-dnsmasq is not even responding, so check the status of the service.
+Dnsmasq is not even responding, so check the status of the service.
 
 ```
 systemctl status dnsmasq
@@ -125,7 +125,7 @@ Apr 18 04:15:54 node1.example.com dnsmasq[1056]: exiting on receipt of SIGTERM
 Apr 18 04:15:54 node1.example.com systemd[1]: Stopped DNS caching server..
 ```
 
-dnsmasq was stopped, start it and check the DNS resolution again.
+Dnsmasq was stopped, start it and check the DNS resolution again.
 
 ```
 systemctl start dnsmasq
@@ -136,9 +136,8 @@ dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
 
 Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
-**Note:
-Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
- 
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+
 ### Appendix
 
 #### Materials used in the scenario

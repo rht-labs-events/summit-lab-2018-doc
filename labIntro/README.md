@@ -20,8 +20,8 @@ This demonstration showcases the following:
 
 #### Versions of products used
 
-Product |Version 
---------- | --------- 
+Product |Version
+--------- | ---------
 `OpenShift Container Platform` |`3.9`
 `Container Native Storate` |`3.3`
 `Grafana` |
@@ -33,8 +33,8 @@ Product |Version
 The demo environment consists of the following systems:
 
 
-Hostname              |Internal IP    |Description 
----------------------- | -------------- | --------------- 
+Hostname              |Internal IP    |Description
+---------------------- | -------------- | ---------------
 `bastion.example.com` |`192.168.0.5`  | Bastion host/Loadbalancer
 `master1.example.com`  |`192.168.0.11` | Master 1
 `master2.example.com`  |`192.168.0.12` | Master 2
@@ -48,6 +48,14 @@ Hostname              |Internal IP    |Description
 
 
 :green_book: bulb HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
+
+#### Links to tools used during the Lab
+
+* [Grafana](https://grafana.apps.example.com/)
+* [Prometheus](https://prometheus.apps.example.com/)
+* [Alertmanager](https://alertmanager.apps.example.com/)
+* [Jenkins Monitor](https://jenkins-ci-cd.apps.example.com/view/summit-labs-fe-monitor/)
+* [Skydive](https://skydive.apps.example.com/)
 
 #### Architecture
 
@@ -101,9 +109,7 @@ Grafana is used to graphically represent cluster data. It interacts directly wit
 * You can get real-time updates of your demo environment at https://www.opentlc.com/rhpds-status.
 
 
-:heavy_check_mark: Tip
-
-Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especially important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
+:heavy_check_mark: TIP: Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especilly important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
 
 ### Getting Started
 
@@ -111,9 +117,7 @@ From a web browser, open URL below in its own window or tab, using `admin` for t
 
 * *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 
-:heavy_check_mark: Tip
-
-You can also find these URLs in the email you received when you provisioned the demo environment.
+:heavy_check_mark: TIP: You can also find these URLs in the email you received when you provisioned the demo environment.
 
 
 ### Review the Environment

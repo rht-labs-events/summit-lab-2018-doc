@@ -9,10 +9,10 @@ Dashboard: Labs Generic
 In this scenario we learn how to detect and identify application storage problems. In this scenario we are using Container Native Storage (CNS), running on the same Openshift cluster.
 We will investigate few issues and solutions how to see if you get storage problems.
 
-*NOTE: GlusterFS metrics will be available in Prometheus from 3.9+. For same of "real world" we will not use those for now as it was not available in previous releases. If you want more details on this - get in touch with your instructors for more information. *
+:heavy_check_mark: GlusterFS metrics will be available in Prometheus from 3.9+. For same of "real world" we will not use those for now as it was not available in previous releases. If you want more details on this - get in touch with your instructors for more information. *
 
 
-To start scenario, execute on the bastion. 
+To start scenario, execute on the bastion.
 
 *This might take a minute or two, relax :)*
 
@@ -38,7 +38,7 @@ error: build error: Failed to push image: received unexpected HTTP status: 500 I
 
 Build should fail. Check other builds, you might have few already failed, as those build are being executed periodically (part of the lab noise making).
 
-*If you dont have any, you can check build we just launched for you:*
+If you dont have any, you can check build we just launched for you:
 
 ```
 oc project build-test
@@ -97,7 +97,7 @@ time="2018-03-21T11:51:36.259894906Z" level=info msg="Using \"docker-registry.de
 
 time="2018-03-21T11:51:36.259997658Z" level=debug msg="(*linkedBlobStore).Writer" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64
  UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry vars.name="coolstore/cart"
- 
+
 time="2018-03-21T11:51:36.305179698Z" level=debug msg="filesystem.PutContent(\"/docker/registry/v2/repositories/coolstore/cart/_uploads/68fe406b-6590-4b24-87e3-b84288f83aa7/startedat\")" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/up
 loads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry trace.duration=45.072341ms trace.file="/builddir/build/BUILD/atomic-openshift-git-0.8edc154/_output/local/go/src/github.com/openshift/origin/vendor/g
 ithub.com/docker/distribution/registry/storage/driver/base/base.go" trace.func="github.com/openshift/origin/vendor/github.com/docker/distribution/registry/storage/driver/base.(*Base).PutContent" trace.id=5ac3aa62-9c46-431b-982e-06e26958c0bd trace.line=95 vars.name="coolstore/cart"
@@ -144,7 +144,7 @@ We can see that our `registry-claim` is 10Gi in size, and is provided manually f
 In 3.9+ you can use new option on the storageClass `allowVolumeExpansion: true`, which would allow dynamic expansion of the PV's.
 User can request larger volume for their PersistentVolumeClaim by simply editing the claim and requesting a larger size. This in turn will trigger expansion of the volume that is backing the underlying PersistentVolume.
 
-In our case we will do this manually. 
+In our case we will do this manually.
 
 
 Check which PV ID was provisioned for the `registry-claim` using Volume name from PVC output:
@@ -191,7 +191,7 @@ We can see that size is 10Gi as observed previously. Lets expand our storage by 
 heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume expand --volume=cf7794a72e28b16860d367d19fe192a0 --expand-size=5
 ```
 
-lets see if our action helped to recover our registry.
+Lets see if our action helped to recover our registry.
 ```
 root@workstation-REPL ~]# oc project default
 ocNow using project "default" on server "https://console.example.com".
@@ -202,9 +202,9 @@ touch: cannot touch '/registry/test': No space left on device
 ```
 
 Surprise :) As in the real world, sometimes things does not work as expected :) . This would be one of those cases were you would need to raise support ticket with Redhat support. But for our lab we already know to which issue we ran into: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
-This should be fixed with next heketi release. But what we need to do now (information is in bugzilla) is to rebalance underlaying gluster cluster. 
+This should be fixed with next heketi release. But what we need to do now (information is in bugzilla) is to rebalance underlaying gluster cluster.
 
-rsh to any gluster pod and do rebalancing :
+Now rsh to any gluster pod and do rebalancing :
 ```
 oc project glusterfs
 oc get pods
@@ -223,7 +223,7 @@ sh-4.2# gluster volume rebalance glusterfs-registry-volume start
 
 Now lets repeat our manual test:
 ```
-oc project default 
+oc project default
 oc get pods
 oc rsh docker-registry-2-5gktk
 sh-4.2$ touch /registry/test
@@ -247,7 +247,7 @@ kubelet_volume_stats_inodes_free
 kubelet_volume_stats_inodes_used
 kubelet_volume_stats_used_bytes
 ```
-and metrics from heketi: https://github.com/heketi/heketi/pull/1068
+And metrics from heketi: https://github.com/heketi/heketi/pull/1068
 
 ### Appendix
 

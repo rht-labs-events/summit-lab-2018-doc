@@ -18,7 +18,7 @@ As a bonus, you will be introduced to SkyDive tool:
 
 * An open source real-time network topology and protocols analyzer.  It aims to provide a comprehensive way of understanding what is happening in the network infrastructure.
 
-* The aim of using SkyDive in this scenario is to give you the opportunity to visualize OpenShift SDN and a better understanding of how it works. 
+* The aim of using SkyDive in this scenario is to give you the opportunity to visualize OpenShift SDN and a better understanding of how it works.
 
 * You could see all SDN pieces working together: pods, containers, namespaces, virtual switches, interfaces, etc.
 
@@ -30,8 +30,7 @@ NAME               HOST/PORT                                             PATH   
 skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io             skydive-analyzer   api                     None
 ```
 
-**NOTE:
-Skydive is exposed in port 80, so use http to access the route instead of https.**
+:heavy_check_mark: Skydive is exposed in port 80, so use http to access the route instead of https.**
 
 
 ![alt text](img/img2-skydive-general.png)
@@ -65,7 +64,7 @@ Useful command for this lab:
 
 ```
 journalctl -fu <service_name> - follow logs of the service
-oc get nodes 
+oc get nodes
 oc describe node <node_nae>
 ```
 
@@ -73,7 +72,7 @@ oc describe node <node_nae>
 
 #### Task 1 solution: Identify node down
 
-nodes (atomic-openshift-node/kubelet) sends heartbeats periodically to the API. Thats how a node reports its status to the cluster. Healthy nodes should be in `Ready` status.
+Nodes (atomic-openshift-node/kubelet) sends heartbeats periodically to the API. Thats how a node reports its status to the cluster. Healthy nodes should be in `Ready` status.
 
 You can check your cluster nodes by executing `oc get nodes`. You can check one particular node by running `oc describe node <OCP_NODE>` to one of the nodes of your cluster. Actually this command gives you a lot more information of the node.
 
@@ -140,7 +139,7 @@ No that we know what is happening, start the service again.
 systemctl start atomic-openshift-node
 ```
 
-But wait, the service is not starting. 
+But wait, the service is not starting.
 
 The reason is that the `openvswitch` service is stopped too. Actually `atomic-openshift-node` systemd unit has `openvswitch` as one of its dependencies, so when `openvswitch` is stopped, `atomic-openshift-node` service is stopped too.
 
@@ -178,8 +177,7 @@ systemctl start atomic-openshift-node
 
 Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
-**Note:
-Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
 
 
 ### OVS Deep dive
@@ -235,4 +233,4 @@ https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.ht
 http://skydive-project.github.io/skydive/
 
 3. Code documentation of OVS rules:
-https://github.com/openshift/origin/blob/c3d0a824b503091f5aa81c88954f218c8f6d6937/pkg/network/node/ovscontroller.go 
+https://github.com/openshift/origin/blob/c3d0a824b503091f5aa81c88954f218c8f6d6937/pkg/network/node/ovscontroller.go
