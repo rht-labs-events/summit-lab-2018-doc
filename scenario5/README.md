@@ -180,7 +180,50 @@ Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
 **Note:
 Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
- 
+
+
+### OVS Deep dive
+
+All traffic in the Openshift OVS based plugins can be inspected even more. On node of your choice execute:
+
+```
+docker exec openvswitch ovs-ofctl -O OpenFlow13 dump-flows br0
+```
+
+You should see all flows for this particular node:
+```
+OFPST_FLOW reply (OF1.3) (xid=0x2):
+ cookie=0x0, duration=578.553s, table=0, n_packets=0, n_bytes=0, priority=250,ip,in_port=2,nw_dst=224.0.0.0/4 actions=drop
+
+ cookie=0x0, duration=578.521s, table=10, n_packets=0, n_bytes=0, priority=0 actions=drop
+ cookie=0x0, duration=158.408s, table=20, n_packets=0, n_bytes=0, priority=100,arp,in_port=73,arp_spa=10.129.2.132,arp_sha=00:00:0a:81:02:84/00:00:ff:ff:ff:ff actions=load:0x135688->NXM_NX_REG0[],goto_table:21
+ cookie=0x0, duration=578.446s, table=30, n_packets=0, n_bytes=0, priority=25,ip,nw_dst=224.0.0.0/4 actions=goto_table:110
+ cookie=0x0, duration=578.424s, table=40, n_packets=0, n_bytes=0, priority=0 actions=drop
+ cookie=0x0, duration=577.587s, table=50, n_packets=0, n_bytes=0, priority=100,arp,arp_tpa=10.129.0.0/23 actions=move:NXM_NX_REG0[]->NXM_NX_TUN_ID[0..31],set_field:192.168.0.12->tun_dst,output:1
+ cookie=0x0, duration=578.418s, table=50, n_packets=0, n_bytes=0, priority=0 actions=drop
+ cookie=0x0, duration=578.412s, table=60, n_packets=0, n_bytes=0, priority=200,reg0=0 actions=output:2
+ cookie=0x0, duration=577.758s, table=60, n_packets=0, n_bytes=0, priority=100,ip,nw_dst=172.30.49.239,nw_frag=later actions=load:0->NXM_NX_REG1[],load:0x2->NXM_NX_REG2[],goto_table:80
+ cookie=0x0, duration=578.406s, table=60, n_packets=0, n_bytes=0, priority=0 actions=drop
+ cookie=0x0, duration=158.385s, table=70, n_packets=0, n_bytes=0, priority=100,ip,nw_dst=10.129.2.132 actions=load:0x135688->NXM_NX_REG1[],load:0x49->NXM_NX_REG2[],goto_table:80
+ cookie=0x0, duration=578.393s, table=80, n_packets=0, n_bytes=0, priority=300,ip,nw_src=10.129.2.1 actions=output:NXM_NX_REG2[]
+ cookie=0x0, duration=578.369s, table=101, n_packets=0, n_bytes=0, priority=51,tcp,nw_dst=192.168.0.32,tp_dst=53 actions=output:2
+ cookie=0x0, duration=578.365s, table=101, n_packets=0, n_bytes=0, priority=51,udp,nw_dst=192.168.0.32,tp_dst=53 actions=output:2
+ cookie=0x0, duration=578.356s, table=101, n_packets=0, n_bytes=0, priority=0 actions=output:2
+```
+
+Rules itself is complicated. But what you need to know is high level structure of the tables itself.
+Some of the rules:
+
+```
+Table 10: VXLAN ingress filtering; filled in by AddHostSubnetRules()
+Table 21: from OpenShift container; NetworkPolicy plugin uses this for connection tracking
+Table 30: general routing
+Table 40: ARP to local container, filled in by setupPodFlows
+Table 101: egress network policy dispatch; edited by UpdateEgressNetworkPolicy()
+```
+
+Sometimes you can observe that lets say EgressNetworkPolicy does not work as you expect or you think it does not work as you expect. By knowing how to dump rules, and where to look you can validate your doubts.
+
 ### Appendix
 
 #### Materials used in the scenario
@@ -190,3 +233,6 @@ https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.ht
 
 2. SkyDive Docs:
 http://skydive-project.github.io/skydive/
+
+3. Code documentation of OVS rules:
+https://github.com/openshift/origin/blob/c3d0a824b503091f5aa81c88954f218c8f6d6937/pkg/network/node/ovscontroller.go 
