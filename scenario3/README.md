@@ -58,10 +58,10 @@ We dont see pod distribution. Lets scale more to check more...
 oc scale dc/hello-openshift --replicas=15
 ```
 
-You should see the same result. So whats happening? 
+You should see the same result. So whats happening?
 
-First our scheduler does not know how to spread pods over the worker nodes. 
-Second, our pid does not have any limits, so again, scheduler does not know "how big is the pod" so it does not know when node is full. 
+First our scheduler does not know how to spread pods over the worker nodes.
+Second, our pid does not have any limits, so again, scheduler does not know "how big is the pod" so it does not know when node is full.
 
 Dashboards and alerts:
 ![alt text](img/1-pod-count.png)
@@ -133,7 +133,7 @@ Events:         <none>
 
 Again from this output we can see that node1 is not utilized. And we have resources available in `Allocatable` section. Worth mentioning that `QoS` is in place and you should be aware how it works. Very good reading about this: https://blog.openshift.com/managing-compute-resources-openshiftkubernetes/
 
-so if you do describe on the node where all our `hello-openshift` pods are running you can see that our pods has no limits and quotas:
+So if you do describe on the node where all our `hello-openshift` pods are running you can see that our pods has no limits and quotas:
 ```
   scheduler                             hello-openshift-1-28rbl                 0 (0%)          0 (0%)          0 (0%)          0 (0%)
   scheduler                             hello-openshift-1-4dsnb                 0 (0%)          0 (0%)          0 (0%)          0 (0%)
@@ -150,13 +150,13 @@ So if you read throuth link about managing compute resources you will know that 
 
 Last place we need to check if Kubernetes scheduler:
 
-ssh to any master and check the file:
+Now ssh to any master and check the file:
 ```
 ssh master1.example.com
-cat /etc/origin/master/scheduler.json 
+cat /etc/origin/master/scheduler.json
 {
-    "apiVersion": "v1", 
-    "kind": "Policy", 
+    "apiVersion": "v1",
+    "kind": "Policy",
     "predicates": [
        ....
         {
@@ -166,10 +166,10 @@ cat /etc/origin/master/scheduler.json
                         "region"
                     ]
                 }
-            }, 
+            },
             "name": "Region"
         }
-    ], 
+    ],
     "priorities": [
       ...
         {
@@ -177,8 +177,8 @@ cat /etc/origin/master/scheduler.json
                 "serviceAntiAffinity": {
                     "label": "zone"
                 }
-            }, 
-            "name": "Zone", 
+            },
+            "name": "Zone",
             "weight": 2
         }
     ]
@@ -187,7 +187,7 @@ cat /etc/origin/master/scheduler.json
 
 More on scheduler configuration you can find in Openshift documentation[1].
 
-So what we can see from this file? 
+So what we can see from this file?
 
 Our nodes has labels `zone=az1` and `region=r1,r2,r3`. And based on these labels our scheduler is doing:
 `serviceAntiAffinity` based on `zone` label: try to spread services as much as you can within the zone.
@@ -238,7 +238,7 @@ oc get pods -o wide
 You should see spread all over 3 nodes now, because `serviceAntiAffinity` is based on zone label, so scheduler is trying to spread pods around.
 
 
-when you done with the scenario, execute command on bastion host:
+When you done with the scenario, execute command on bastion host:
 
 ```
 lab -s 3 -a solve
