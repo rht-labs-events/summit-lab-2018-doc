@@ -54,7 +54,7 @@ Hostname              |Internal IP    |Description
 * [Grafana](https://grafana.apps.example.com/)
 * [Prometheus](https://prometheus.apps.example.com/)
 * [Alertmanager](https://alertmanager.apps.example.com/)
-* [Jenkins Monitor](https://jenkins.apps.example.com/view/summit-labs-fe-monitor/)
+* [Jenkins Monitor](https://jenkins-ci-cd.apps.example.com/view/summit-labs-fe-monitor/)
 * [Skydive](https://skydive.apps.example.com/)
 
 #### Architecture
