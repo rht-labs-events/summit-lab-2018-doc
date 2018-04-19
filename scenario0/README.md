@@ -8,7 +8,7 @@ Dashboard: ETCD
 
 In this lab we will see how loss of the quorum can impact Platforms behaviour and how we can recover from it for the time being. And will advise on material for future readings when planning real life DR situations.
 
-etcd stores the persistent master state while other components watch etcd for changes to bring themselves into the desired state. etcd can be optionally configured for high availability, typically deployed with 2n+1 peer services.
+Etcd stores the persistent master state while other components watch etcd for changes to bring themselves into the desired state. etcd can be optionally configured for high availability, typically deployed with 2n+1 peer services.
 
 In this lab etcd runs together on masters. Before starting open Grafana dashboard `ETCD` and inspect monitoring data from our etcd cluster.
 
@@ -24,12 +24,12 @@ We can check etcd manually via command from the master or any remote host which 
 
 If you dont have dashboards and alerting tools in place, next big thing when it comes to debugging is `etcdctl` utility. Lets check how we can use it.
 
-ssh to one of the master hosts:
+Now ssh to one of the master hosts:
 ```
 ssh root@master1.example.com
 ```
 
-execute a command to check etcd health status. This command will give you each endpoint health status. 
+Execute a command to check etcd health status. This command will give you each endpoint health status.
 ```
 [root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" endpoint status -w table"
 
@@ -43,8 +43,10 @@ execute a command to check etcd health status. This command will give you each e
 +---------------------------+------------------+---------+---------+-----------+-----------+------------+
 ```
 
-In this table we can see current etcd status. Which node is the leader, database size, version, unique ID, raft term, raft index. 
-`Raft Term` is an integer that will increase whenever an etcd master election happens in the cluster. If this number is increasing rapidly, you may need to tune the election timeout. 
+In this table we can see current etcd status. Which node is the leader, database size, version, unique ID, raft term, raft index.
+
+`Raft Term` is an integer that will increase whenever an etcd master election happens in the cluster. If this number is increasing rapidly, you may need to tune the election timeout.
+
 `Raft Index` - This is more complex, but you can think about this one as "data consistency" metrics. Those should be equal on all replicas (or very small difference).
 
 
@@ -72,7 +74,7 @@ docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/pee
 
 Manual command are useful if ETCD goes to Read-Only mode (when quorum is lost) we might lose nice UI monitoring features of the platform as some of those tools uses mutating api calls, and are changing platform. Those requires healthy etcd cluster.
 
-Now lets see what would happen if we lose one etcd node. 
+Now lets see what would happen if we lose one etcd node.
 
 Execute from the bastion:
 
@@ -139,7 +141,7 @@ Lets assume you need to bring platform to the usable state, but you still dont h
 
 Switch master1/etcd1 to single master mode:
 
-ssh to master1:
+Now ssh to master1:
 ```
 ssh master1.example.com
 ```
@@ -170,7 +172,7 @@ ssh to master1:
 ```
 ssh master1.example.com
 ```
-re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
+Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
 [root@master1]# sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
 [root@master1]# systemctl show etcd_container.service --property ExecStart --no-pager
@@ -219,12 +221,12 @@ ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master1.examp
 ETCD_INITIAL_CLUSTER_STATE=existing
 ```
 
-remove old member data:
+Remove old member data:
 ```
 [root@master2 ~]# rm -rf /var/lib/etcd/member
 ```
 
-start etcd container
+Start etcd container
 ```
 systemctl start etcd_container
 ```
@@ -246,7 +248,7 @@ b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https
 
 Repeate same for master3:
 
-on master1:
+On master1:
 ```
 [root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" member add master3.example.com --peer-urls="https://192.168.0.13:2380""
 
@@ -270,7 +272,7 @@ ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master3.examp
 ETCD_INITIAL_CLUSTER_STATE=existing
 ```
 
-remove old member data:
+Remove old member data:
 ```
 [root@master3 ~]# rm -rf /var/lib/etcd/member
 ```
@@ -289,10 +291,10 @@ Now you should see all 3 ETCD back online in Grafana and no alerts in prometheus
 
 #### Materials used in the scenario
 
-1. Openshift Documentation on ETCD recovery: 
+1. Openshift Documentation on ETCD recovery:
 https://docs.openshift.com/container-platform/3.9/admin_guide/backup_restore.html
 
 2. Grafana dashboard and Prometheus alert rules: TODO: GitHub url to dashboards and alertmanager
 
 3. Etcd (v2) admin guide:
-https://coreos.com/etcd/docs/latest/v2/admin_guide.html 
+https://coreos.com/etcd/docs/latest/v2/admin_guide.html

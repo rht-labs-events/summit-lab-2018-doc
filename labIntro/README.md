@@ -109,9 +109,7 @@ Grafana is used to graphically represent cluster data. It interacts directly wit
 * You can get real-time updates of your demo environment at https://www.opentlc.com/rhpds-status.
 
 
-:heavy_check_mark: Tip
-
-Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especially important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
+:heavy_check_mark: TIP: Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especilly important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
 
 ### Getting Started
 
@@ -119,9 +117,7 @@ From a web browser, open URL below in its own window or tab, using `admin` for t
 
 * *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 
-:heavy_check_mark: Tip
-
-You can also find these URLs in the email you received when you provisioned the demo environment.
+:heavy_check_mark: TIP: You can also find these URLs in the email you received when you provisioned the demo environment.
 
 
 ### Review the Environment
