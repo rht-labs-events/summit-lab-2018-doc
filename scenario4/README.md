@@ -8,7 +8,7 @@ Dashboard: Builds Overview
 
 Into what we will do
 
-In this lab when debugging application you should use command `oc debug`. 
+In this lab when debugging application you should use command `oc debug`.
 
 Type `oc debug -h` for information how to use it.
 
@@ -17,9 +17,9 @@ To start this scenario execute command on the bastion:
 lab -s 4 -a init
 ```
 
-You should have new project `hello-openshift` in your cluster. At the moment its empty project. But lets populate it. 
+You should have new project `hello-openshift` in your cluster. At the moment its empty project. But lets populate it.
 
-You now have folder `hello-openshift` in the root folder. Its very simple `goLang` application to demonstrate binary build and simple application debugging methods. 
+You now have folder `hello-openshift` in the root folder. Its very simple `goLang` application to demonstrate binary build and simple application debugging methods.
 
 Lets build an app:
 ```
@@ -37,7 +37,7 @@ Flag `--binary` tells buildconfig that we will be using local file system as sou
 oc start-build hello-openshift --from-dir . --follow
 ```
 
-We should see app build succ: 
+We should see app build succ:
 ```
 [root@workstation-REPL hello-openshift]# oc get is
 NAME              DOCKER REPO                                                        TAGS      UPDATED
@@ -51,14 +51,14 @@ oc new-app hello-openshift
 oc expose svc/hello-openshift
 ```
 
-And check our application. 
+And check our application.
 ```
 [root@workstation-REPL hello-openshift]# oc get pods
 NAME                       READY     STATUS              RESTARTS   AGE
 hello-openshift-1-6l22c    0/1       RunContainerError   3          47s
 hello-openshift-1-build    0/1       Completed           0          3m
 hello-openshift-1-deploy   1/1       Running             0          53s
-[root@workstation-REPL hello-openshift]# 
+[root@workstation-REPL hello-openshift]#
 ```
 
 Now use `oc debug` to check why application is not starting, try starting in debug mode. Later change local files and rebuild application again (from `oc start-build`) and confirm that app is running.
@@ -124,7 +124,7 @@ drwxr-xr-x.  18 root root     238 Mar  2 01:07 var
 
 Dam typo troll... Try right binary name:
 ```
-sh-4.2$ ./hello-openshift 
+sh-4.2$ ./hello-openshift
 serving on 8080
 serving on 8888
 ```
@@ -133,13 +133,13 @@ Now when we know where is the issue we can change dockerfile and rebuild the app
 ```
 vi Dockerfile
 
-#change 
+#change
 ENTRYPOINT ["/helo-openshift"]
  to
 ENTRYPOINT ["/hello-openshift"]
 ```
 
-and rebuild the application:
+And rebuild the application:
 ```
 oc start-build hello-openshift --from-dir . --follow
 ```
@@ -170,7 +170,7 @@ groups:
  - name: example
    rules:
     - alert: JobRestarting
-     expr: avg without(instance)(changes(process_start_time_seconds[1h])) > 3 
+     expr: avg without(instance)(changes(process_start_time_seconds[1h])) > 3
      for: 10m
      labels:
        severity: LOW
