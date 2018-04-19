@@ -20,8 +20,8 @@ This demonstration showcases the following:
 
 #### Versions of products used
 
-Product |Version 
---------- | --------- 
+Product |Version
+--------- | ---------
 `OpenShift Container Platform` |`3.9`
 `Container Native Storate` |`3.3`
 `Grafana` |
@@ -33,8 +33,8 @@ Product |Version
 The demo environment consists of the following systems:
 
 
-Hostname              |Internal IP    |Description 
----------------------- | -------------- | --------------- 
+Hostname              |Internal IP    |Description
+---------------------- | -------------- | ---------------
 `bastion.example.com` |`192.168.0.5`  | Bastion host/Loadbalancer
 `master1.example.com`  |`192.168.0.11` | Master 1
 `master2.example.com`  |`192.168.0.12` | Master 2
@@ -48,6 +48,14 @@ Hostname              |Internal IP    |Description
 
 
 :green_book: bulb HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
+
+#### Links to tools used during the Lab
+
+* [Grafana](https://grafana.apps.example.com/)
+* [Prometheus](https://prometheus.apps.example.com/)
+* [Alertmanager](https://alertmanager.apps.example.com/)
+* [Jenkins Monitor](https://jenkins.apps.example.com/view/summit-labs-fe-monitor/)
+* [Skydive](https://skydive.apps.example.com/)
 
 #### Architecture
 
