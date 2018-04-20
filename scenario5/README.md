@@ -129,19 +129,26 @@ ssh node2.example.com
 systemctl status atomic-openshift-node
 ```
 
-As you can see, the service is stopped.
+As you can see, the service is stopped. Let's check  also the `openvswitch` service:
+
+```
+ssh node2.example.com
+systemctl status openvswitch
+```
+
+We can see is stopped too.
 
 #### Task 2 solution: Make node ready again
 
-No that we know what is happening, start the service again.
+Now that we know what is happening, start `atomic-openshift-node` service again.
 
 ```
 systemctl start atomic-openshift-node
 ```
 
-But wait, the service is not starting.
+There is no need to start each service independently. Actually `atomic-openshift-node` systemd unit has `openvswitch` as one of its dependencies, so when `atomic-openshift-node` is started, `openvswitch` service is started too.
 
-The reason is that the `openvswitch` service is stopped too. Actually `atomic-openshift-node` systemd unit has `openvswitch` as one of its dependencies, so when `openvswitch` is stopped, `atomic-openshift-node` service is stopped too.
+You can check that `openvswitch` service is already running after starting `atomic-openshift-node`.
 
  ```
 systemctl status openvswitch
@@ -149,40 +156,32 @@ systemctl status openvswitch
    Loaded: loaded (/etc/systemd/system/openvswitch.service; enabled; vendor preset: disabled)
   Drop-In: /etc/systemd/system/openvswitch.service.d
            └─01-avoid-oom.conf
-   Active: inactive (dead) since Tue 2018-04-17 05:47:13 EDT; 2s ago
-  Process: 17568 ExecStop=/usr/bin/docker stop openvswitch (code=exited, status=0/SUCCESS)
-  Process: 14778 ExecStartPost=/usr/bin/sleep 5 (code=exited, status=0/SUCCESS)
-  Process: 14777 ExecStart=/usr/bin/docker run --name openvswitch --rm --privileged --net=host --pid=host -v /lib/modules:/lib/modules -v /run:/run -v /sys:/sys:ro -v /etc/origin/openvswitch:/etc/openvswitch openshift3/openvswitch:${IMAGE_VERSION} (code=exited, status=0/SUCCESS)
-  Process: 14769 ExecStartPre=/usr/bin/docker rm -f openvswitch (code=exited, status=1/FAILURE)
- Main PID: 14777 (code=exited, status=0/SUCCESS)
+   Active: active (running) since Thu 2018-04-19 12:33:27 EDT; 2min 38s ago
+  Process: 2125 ExecStartPost=/usr/bin/sleep 5 (code=exited, status=0/SUCCESS)
+  Process: 2110 ExecStartPre=/usr/bin/docker rm -f openvswitch (code=exited, status=1/FAILURE)
+ Main PID: 2124 (docker-current)
+    Tasks: 12
+   Memory: 2.0M
+   CGroup: /system.slice/openvswitch.service
+           └─2124 /usr/bin/docker-current run --name openvswitch --rm --privileged --net=host --pid=host -v /lib/modules:/lib/modules -v /run:/run -v /sys:/sys:ro -v /etc/origin/openvswitch:/etc/openvswitch ope...
 
-Apr 17 05:27:27 node2.example.com openvswitch[14777]: Starting ovsdb-server [  OK  ]
-Apr 17 05:27:27 node2.example.com openvswitch[14777]: Configuring Open vSwitch system IDs [  OK  ]
-Apr 17 05:27:27 node2.example.com openvswitch[14777]: Starting ovs-vswitchd [  OK  ]
-Apr 17 05:27:27 node2.example.com openvswitch[14777]: Enabling remote OVSDB managers [  OK  ]
-Apr 17 05:27:31 node2.example.com systemd[1]: Started openvswitch.service.
-Apr 17 05:47:11 node2.example.com systemd[1]: Stopping openvswitch.service...
-Apr 17 05:47:12 node2.example.com openvswitch[14777]: Exiting ovs-vswitchd (14901) [  OK  ]
-Apr 17 05:47:13 node2.example.com openvswitch[14777]: Exiting ovsdb-server (14891) [  OK  ]
-Apr 17 05:47:13 node2.example.com openvswitch[17568]: openvswitch
-Apr 17 05:47:13 node2.example.com systemd[1]: Stopped openvswitch.service.
-
-```
-
-Now start both services, in the proper order:
-```
-systemctl start openvswitch
-systemctl start atomic-openshift-node
+Apr 19 12:33:22 node1.example.com systemd[1]: Starting openvswitch.service...
+Apr 19 12:33:22 node1.example.com openvswitch[2110]: Error response from daemon: No such container: openvswitch
+Apr 19 12:33:27 node1.example.com systemd[1]: Started openvswitch.service.
+Apr 19 12:33:49 node1.example.com openvswitch[2124]: Starting ovsdb-server [  OK  ]
+Apr 19 12:33:50 node1.example.com openvswitch[2124]: Configuring Open vSwitch system IDs [  OK  ]
+Apr 19 12:33:50 node1.example.com openvswitch[2124]: Inserting openvswitch module [  OK  ]
+Apr 19 12:33:51 node1.example.com openvswitch[2124]: Starting ovs-vswitchd [  OK  ]
+Apr 19 12:33:52 node1.example.com openvswitch[2124]: Enabling remote OVSDB managers [  OK  ]
 ```
 
 Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
 :heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
 
-
 ### OVS Deep dive
 
-All traffic in the Openshift OVS based plugins can be inspected even more. On node of your choice execute:
+All traffic in the OpenShift OVS based plugins can be inspected even more. On a node of your choice execute:
 
 ```
 docker exec openvswitch ovs-ofctl -O OpenFlow13 dump-flows br0
@@ -209,7 +208,8 @@ OFPST_FLOW reply (OF1.3) (xid=0x2):
  cookie=0x0, duration=578.356s, table=101, n_packets=0, n_bytes=0, priority=0 actions=output:2
 ```
 
-Rules itself is complicated. But what you need to know is high level structure of the tables itself.
+Rules are complicated. But what you need to know is the high level structure of the tables.
+
 Some of the rules:
 
 ```
@@ -220,7 +220,7 @@ Table 40: ARP to local container, filled in by setupPodFlows
 Table 101: egress network policy dispatch; edited by UpdateEgressNetworkPolicy()
 ```
 
-Sometimes you can observe that lets say EgressNetworkPolicy does not work as you expect or you think it does not work as you expect. By knowing how to dump rules, and where to look you can validate your doubts.
+Sometimes you can observe a misbehavior, lets say EgressNetworkPolicy does not work as you expect or you think it does not work as you expect. By knowing how to dump rules, and where to look you can validate your doubts.
 
 ### Appendix
 
