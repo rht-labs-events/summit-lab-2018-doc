@@ -31,7 +31,10 @@ ssh root@master1.example.com
 
 Execute a command to check etcd health status. This command will give you each endpoint health status.
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" endpoint status -w table"
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+ --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+ --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+ endpoint status -w table"
 
 #Output example:
 +---------------------------+------------------+---------+---------+-----------+-----------+------------+
@@ -53,7 +56,10 @@ In this table we can see current etcd status. Which node is the leader, database
 Now more generic health command:
 
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"  endpoint health -w table"
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+ --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+ --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+ endpoint health -w table"
 
 ###Output:
 https://master2.example.com:2379 is healthy: successfully committed proposal: took = 6.889365ms
@@ -61,9 +67,17 @@ https://master3.example.com:2379 is healthy: successfully committed proposal: to
 https://master1.example.com:2379 is healthy: successfully committed proposal: took = 5.291873ms
 ```
 
+:exclamation: ETCDETCL command:
+
+*_We exectute etcdctl command with prefixed command "docker exec -it etcd_container "etdctl ...". This is because this binary is available ONLY in the running container. It will not work if you try execute same command from host level_*
+
 One more useful command is to list all the keys and data in the etcd. In this example we get one of the templates:
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"  get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
 ```
 
 
@@ -92,7 +106,7 @@ We can see now lost etcd alert in prometheus and alertmanager:
 
 ![alt text](img/img4-lost-etcd-alertmanager.png)
 
-If you execute same `etcdctl` command on the masters again, you will see this represented in the output too.
+If you execute same `docker exec -it etcd_container "etcdctl ... "` command on the masters again, you will see this represented in the output too.
 
 Our platform still performs fine, as we have quorum available. Now lets see what will happen when we remove second node from the pool. Note, grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api. And without quorum all api is responding is read-only.
 
@@ -175,9 +189,6 @@ ssh master1.example.com
 Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
 [root@master1]# sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
-[root@master1]# systemctl show etcd_container.service --property ExecStart --no-pager
-
-ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) /usr/bin/etcd"
 ```
 
 At this point etcd still runs with old systemd.
@@ -188,14 +199,20 @@ At this point etcd still runs with old systemd.
 ```
 Check etcd 1 member list:
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" member list"
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member list"
 
 b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
 
 Add member 2:
 ```
-[root@master1]#  docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" member add master2.example.com --peer-urls="https://192.168.0.12:2380""
+[root@master1]#  docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member add master2.example.com --peer-urls="https://192.168.0.12:2380""
 
 Member 8d13245ff0d59b2b added to cluster 447e150364ce5cc3
 
@@ -240,7 +257,12 @@ Check logs `journalctl -fu etcd_container`
 
 Member list on master1 should show you now 2 running members:
 ```
-[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" member list"
+[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"\
+member list"
+
+
 4f1716f1da0e8dd9, started, master2.example.com, https://192.168.0.12:2380, https://192.168.0.12:2379
 b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
@@ -250,7 +272,10 @@ Repeate same for master3:
 
 On master1:
 ```
-[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" member add master3.example.com --peer-urls="https://192.168.0.13:2380""
+[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt  \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member add master3.example.com --peer-urls="https://192.168.0.13:2380""
 
 Member ffcc8fc41a1321d7 added to cluster 447e150364ce5cc3
 

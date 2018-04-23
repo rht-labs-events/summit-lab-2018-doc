@@ -86,31 +86,6 @@ Grafana is used to graphically represent cluster data. It interacts directly wit
 
  ![alt text](img/grafana.png)
 
-
-### Provision Your Demo Environment
-
-1. If you have Red Hat Product Demo System access, log in to the link:https://rhpds.redhat.com/[Red Hat Product Demo System] with your SSO credentials.
-
-2. Go to *Services -> Catalogs -> Service Catalogs*.
-
-3. Under *All Services -> AppDev in the Cloud*, select *Effectively monitor and troubleshoot your OCP Cluster*.
-
-4. On the right, click *Order*.
-
-5. Read all of the information on the resulting page, check the necessary box, and click *Submit*.
-
-:bangbang: Important Note
-
-* It takes about 15-20 minutes for the demo to load completely and become accessible.
-    * Wait for the full demo to load, even if some of its systems are marked "Up."
-* Watch for an email with information about how to access your demo environment.
-    * Make note of the email's contents: a list of hostnames, IP addresses, and your GUID.
-    * Whenever you see GUID in the demo instructions, replace it with the GUID provided in the email.
-* You can get real-time updates of your demo environment at https://www.opentlc.com/rhpds-status.
-
-
-:heavy_check_mark: TIP: Be mindful of the runtime of your demo environment! It may take you longer than the 3 hours allotted to complete the demo, so you may need to extend the runtime. This is especilly important in later steps when you are building virtual machines. For information on how to extend runtime and lifetime, see https://www.opentlc.com/lifecycle.
-
 ### Getting Started
 
 From a web browser, open URL below in its own window or tab, using `admin` for the username and `r3dh4t1!` for the password:
