@@ -6,9 +6,9 @@ Length: 20-30 min
 Dashboard: ETCD
 ```
 
-In this lab we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) quorum can impact Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
+In this lab we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) cluster quorum can impact the OpenShift Container Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
 
-`etcd` stores the persistent master state while other components watch `etcd` for changes to bring themselves into the desired state. `etcd` can be optionally configured for high availability, typically deployed with 2n+1 peer services. For further details, you can read the `What is failure tolerance?` section of [this page](https://coreos.com/etcd/docs/latest/faq.html) at your own leisure.
+`etcd` stores the persistent OpenShift Container Platform (OCP) master state while other components watch `etcd` for changes to bring themselves into the desired state. `etcd` can be optionally configured for high availability, typically deployed with 2n+1 peer services. For further details, you can read the `What is failure tolerance?` section of [this page](https://coreos.com/etcd/docs/latest/faq.html) at your own leisure.
 
 In this lab `etcd` runs co-hosted with the OpenShift Container Platform (OCP) masters. Before you start, open the Grafana dashboard `ETCD` and inspect monitoring data for the `etcd` cluster.
 
@@ -52,11 +52,11 @@ Execute the following command to check the `etcd` cluster's health status:
 +---------------------------+------------------+---------+---------+-----------+-----------+------------+
 ```
 
-This table shows the current status of the cluster, including which node is the leader, database size, version, unique ID, raft term, raft index.
+This table shows the current status of the etcd cluster, including which member is the leader, database size, version, unique ID, raft term, raft index.
 
 `Raft Term` is an integer that will increase whenever an `etcd` master election happens in the cluster. If this number is increasing rapidly, you may need to tune the election timeout.
 
-`Raft Index` is more complex, but can be thought of as a "data consistency" metrics. This value should be equal, or very close to equal, for all of the members part of the `etcd` cluster.
+`Raft Index` is more complex, but can be thought of as a "data consistency" metrics. This value should be equal, or very close to equal, for all other members part of the `etcd` cluster.
 
 
 For a more generic health check, run the following command:
@@ -73,16 +73,12 @@ https://master3.example.com:2379 is healthy: successfully committed proposal: to
 https://master1.example.com:2379 is healthy: successfully committed proposal: took = 5.291873ms
 ```
 
-<<<<<<< HEAD
 :exclamation: ETCDETCL command:
 
 *_We exectute etcdctl command with prefixed command "docker exec -it etcd_container "etdctl ...". This is because this binary is available ONLY in the running container. It will not work if you try execute same command from host level_*
 
-One more useful command is to list all the keys and data in the etcd. In this example we get one of the templates:
-=======
-Another useful command is to list all the keys and data in the etcd. In this example we get one of the Application templates from the OpenShift Container Platform:
+Another useful command is to list all the keys and data in the etcd cluster. In this example we get one of the Application Templates from the OpenShift Container Platform:
 
->>>>>>> Doc updates
 ```
 docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
 --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
@@ -94,9 +90,9 @@ get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
 
 :exclamation: Important Note:
 
-*_Openshift consumes etcd as external service. There are scenarios when despite the fact that etcd show healthy status, cluster will not be working. This usually happens when cluster looses conectivity to the etcd cluster. This might happen because of firewalls, certificates or any other reason. For this reason you should always smoke test your cluster with "noise makers" to make sure you can use mutating API calls_*
+*_The Openshift Container Platform consumes etcd as an external service. There are scenarios when despite the fact that etcd shows a healthy status, the OCP cluster will not be working. This usually happens when OCP cluster looses connectivity to the etcd cluster. This might happen because of firewalls, certificates or any other reason. For this reason the OpenShift cluster should always be smoke tested with "noise makers" to make sure mutating API calls work_*
 
-Manual commands are useful if `etcd` goes to Read-Only mode (when quorum is lost). In this case, the UI monitoring of the platform may be lost as some of those tools uses mutating api calls, which requires a healthy `etcd` cluster to function properly.
+Manual commands are useful if `etcd` goes to Read-Only mode (when quorum is lost). In this case, the UI monitoring of the platform may be lost as some of those tools uses mutating api calls which requires a healthy `etcd` cluster to function properly.
 
 
 Next, we will take a closer look at what happens when one etcd node is lost.
@@ -113,13 +109,9 @@ After a few seconds grafana should report that only 2 etcd are alive. Make sure 
 
 ![alt text](img/img4-lost-etcd-alertmanager.png)
 
-<<<<<<< HEAD
-If you execute same `docker exec -it etcd_container "etcdctl ... "` command on the masters again, you will see this represented in the output too.
-=======
-If the same `etcdctl` command as used earlier are again executed on the masters, you will be able to observe the same outage in the output.
->>>>>>> Doc updates
+Use the same `etcdctl` command as executed earlier on the masters to observe the same outage in the output.
 
-The OCP cluster still performs fine, as quorum is still maintained. However, next, let us see what happens when a second node is removed from the `etcd` cluster. At this point, the grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api, and without quorum all api calls are responding as "read-only".
+The OCP cluster still performs fine, as quorum is still maintained. However, next let us see what happens when a second node is removed from the `etcd` cluster. At this point, the grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api, and without quorum all api calls are responding as "read-only".
 
 Execute from the *bastion* host:
 
@@ -135,15 +127,15 @@ At this point, all the dashboards should indicate major failures and clusters in
 
 
 
-############################ THIS NEEDS FIXING - WE (Red Hat) DOES NOT SUPPORT SPLITTING A CLUSTER ACROSS MULTIPLE DATA CENTERS ########
+####### THIS NEEDS FIXING - WE (Red Hat) DOES NOT SUPPORT SPLITTING A CLUSTER ACROSS MULTIPLE DATA CENTERS #######
 #######
 This is very common scenario in the deployments where you have only 2 datacenters. In this architecture one of the possible deployment ways is that you will need to split your quorum system in 2. Which means if you loose one datacenter, you lost quorum. This is just one of the possible architecture for Openshift. We always recommend to split 3 masters/etcd in 3 availability zones. But this is not always possible.
 #######
-############################ FIX THE ABOVE STATEMENT !!!!!! ############################################################################
+####### FIX THE ABOVE STATEMENT !!!!!! ############################################################################
 
 #### Lab goal
 
-For `Task 1` of this scenario you should not do anything with master2 and master3. Assume you lost them and your platform have to be recovered using master1 ONLY.
+For `Task 1` of this scenario you should not do anything with master2 and master3. Assume they are lost and the OpenShift Container Platform has to be recovered using master1 ONLY.
 
 Task 1: Put master1's `etcd` process (etcd_container) into a `single-node` mode so the cluster works as a one member etcd cluster. When done, make sure that your Openshift Container Platform (OCP) cluster behaves fine with one `etcd` member.
 
@@ -168,52 +160,57 @@ ansible [all|masters|infras] -m shell -a "hostname"  << execute adhoc command on
 
 ##### Task 1 solution
 
-Lets assume you need to bring platform to the usable state, but you still do not have second datacenter available. For this we can switch single surviving etcd node to the single master configuration. And when surviving etcd becomes available for us, we can add them back to the cluster.
+Let us assume the OpenShift Container platform should be brought back to a usable state, but the majority of the cluster hosts are not available. For this we can switch the single surviving `etcd` node over to the single master configuration. And when surviving etcd becomes available for uses, they can be added back to the cluster.
 
 Switch master1/etcd1 to single master mode:
 
-Now ssh to master1:
+ssh to master1:
+
 ```
 ssh master1.example.com
 ```
-Force new cluster from 1 etcd node:
+
+Force new cluster to use a single `etcd` node:
+
 ```
 [root@master1]# sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
 [root@master1]# systemctl daemon-reload
 [root@master1]# systemctl restart etcd_container
 
-#Check logs of the container
+# Check logs of the etcd container
 journalctl -fu etcd_container
 ```
 
-Recovery might take up to few minutes. But you should see platform getting to better shape now.
+Recovery might take a few minutes, but the platform should show recovering symptoms.
 
 ![alt text](img/img7-one-etcd.png)
 
 ![alt text](img/img7-one-etcd.png)
 
-All other operations should get back to normal. We just told master1 (surviving etcd node) to "start new cluster with existing data". You can check builds in ci-cd namespace. They should be starting again.
+All other operations should be getting back to normal. Since master1 (surviving etcd node) was instructed to "start new cluster with existing data", you can check builds in ci-cd namespace and observe that they should be starting again.
 
 ##### Task 2 solution
 
-Now lets assume you got your second DC back. But etcd cluster is now out of sync. We need to create new cluster, by adding 2 lost etcd to the survivor as new members.
+In this task, with the rest of the cluster hosts back, the `etcd` cluster is now out of sync. Hence, a new new cluster needs to be created by re-adding the 2 lost `etcd` nodes to the survivor as new members.
 
 Remove `--force-new-cluster` flag from member one.
+
 ssh to master1:
 ```
 ssh master1.example.com
 ```
+
 Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
 [root@master1]# sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
 ```
 
-At this point etcd still runs with old systemd.
-
+At this point etcd still runs with old systemd. Reload the daemon and restart the `etcd_container` service:
 ```
 [root@master1]# systemctl daemon-reload
 [root@master1]# systemctl restart etcd_container
 ```
+
 Check etcd 1 member list:
 ```
 [root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
@@ -237,7 +234,8 @@ ETCD_NAME="master2.example.com"
 ETCD_INITIAL_CLUSTER="master2.example.com=https://192.168.0.12:2380,master1.example.com=https://192.168.0.11:2380"
 ETCD_INITIAL_CLUSTER_STATE="existing"
 ```
-Save these variables somewhere. We will need them in a second.
+
+Save these variables somewhere, they will be needed in the next step.
 
 Now ssh to master2 and update main etcd details with these variables:
 
@@ -260,12 +258,12 @@ Remove old member data:
 [root@master2 ~]# rm -rf /var/lib/etcd/member
 ```
 
-Start etcd container
+Start etcd container service:
 ```
 systemctl start etcd_container
 ```
 
-:exclamation: *If you see something like error below, you potentially didnt removed quotes in the etcd config file*
+:exclamation: *If you see an error like the one below, the quotes were most likely not removed in the etcd config file*
 ```
 Mar 31 16:31:35 master2.example.com etcd_container[14625]: 2018-03-31 20:31:35.854136 W | pkg/netutil: failed resolving host master2.example.com:2380" (address tcp/2380": unknown port); retrying in 1
 ```
@@ -285,7 +283,7 @@ b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https
 ```
 
 
-Repeate same for master3:
+Repeat the same steps for master3:
 
 On master1:
 ```
@@ -301,7 +299,7 @@ ETCD_INITIAL_CLUSTER="master2.example.com=https://192.168.0.12:2380,master3.exam
 ETCD_INITIAL_CLUSTER_STATE="existing"
 ```
 
-Change to master3:
+Switch over to master3:
 ```
 ssh master3.example.com
 ```
@@ -318,16 +316,16 @@ Remove old member data:
 ```
 [root@master3 ~]# rm -rf /var/lib/etcd/member
 ```
-start container
+start the etcd container service:
 ```
 [root@master3 ~]# systemctl start etcd_container
 ```
 
-Now check again cluster health with command from the beginning of the scenario.
+Now check the etcd cluster health with the same command from the beginning of the scenario.
 
-This was simple failure and recover scenario, where old nodes was available for us. We have ansible playbooks to do all these things for you. If nodes are lost unrecoverably, there is addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
+This scenario has demonstrated failure and recovery steps for the etcd cluster, where old nodes were available for use. Ansible playbooks are available to do all these steps for you. If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
 
-Now you should see all 3 ETCD back online in Grafana and no alerts in prometheus. If this is not a case - call instructor :)
+Finally - all 3 `etcd` cluster hosts should now be back online in Grafana and no alerts in prometheus. Notify the instructor if this is not the case. :)
 
 ### Appendix
 
