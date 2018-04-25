@@ -6,23 +6,22 @@ Length: 20-30 min
 Dashboard: Labs Generic
 ```
 
-In this scenario we learn how to detect and identify application storage problems. In this scenario we are using Container Native Storage (CNS), running on the same Openshift cluster.
-We will investigate few issues and solutions how to see if you get storage problems.
+In this scenario we learn how to detect and identify application storage problems. The backing storage for this lab is Container Native Storage (CNS), running in the same Openshift Container Platform cluster. We will investigate a few issues, and use troubleshooting steps to help identify storage problems.
 
-:heavy_check_mark: GlusterFS metrics will be available in Prometheus from 3.9+. For same of "real world" we will not use those for now as it was not available in previous releases. If you want more details on this - get in touch with your instructors for more information. *
+:heavy_check_mark: GlusterFS metrics will be available in Prometheus from 3.9+. This is outside of the scope of this Lab.*
 
 
-To start scenario, execute on the bastion.
+To start the lab scenario, execute the following on the bastion host.
 
-*This might take a minute or two, relax :)*
+*This might take a minute or two*
 
 ```
 lab -s 2 -a init
 ```
 
-Now try build something. We have pre-deployed apps on the platform for you to consume. Check project ci-cd for any running builds and inspect them.
+Now try kicking off a build within the OpenShift Container Platform cluster (there are pre-deployed projects and applications that can be used).
 
-Or inspect any other build in `ci-cd` namespace (change any failed builds):
+... or inspect any of the builds in the `ci-cd` project/namespace:
 
 ```
 [root@workstation]# oc project ci-cd
@@ -36,52 +35,53 @@ Registry server Password: <<non-empty>>
 error: build error: Failed to push image: received unexpected HTTP status: 500 Internal Server Error
 ```
 
-Build should fail. Check other builds, you might have few already failed, as those build are being executed periodically (part of the lab noise making).
+The builds should fail. Continue to check some of the other builds for additional failures as those builds are being executed periodically (part of the lab noise making).
 
-If you dont have any, you can check build we just launched for you:
+If no failed builds can be found, check the build that was just launched automatically:
 
 ```
 oc project build-test
 oc get pods
 ```
-and inspect logs for it.
+and inspect the logs.
 
-Now we will debug whats the issue with our build.
-
-
-:exclamation: To be proactive on this type of issue we recommend to follow "failed build" metrics `openshift_build_total` in prometheus. This would give you healthy view on what is happening in the cluster. At the same time we recommend to execute some "smoke test" build on timely basis on the cluster so issue could be detected early.
-
-Logs in the build is not very helpful.
-
-In this case its not clear whats happening. For this we will go and inspect registry logs, as it failed during a "push" phase of the build.
+Next, we will debug the issue with the build(s).
 
 
-Task 1: Identify why build failed.
+:exclamation: To be proactive on this type of issue we recommend to follow "failed build" metrics `openshift_build_total` in prometheus. This provides a healthy view on what is happening in the cluster. At the same time it is recommended to execute some "smoke test" builds on a periodic basis so issues can be detected early.
 
-Task 2: Solve the issue. and confirm solution worked.
+The actual logs in the build itself are typically not very helpful.
+
+In this case it is not clear what happened. To troubleshoot this, inspect the registry logs as the build failed during the "push" phase of the newly build image.
+
+
+Task 1: Identify why the build failed.
+
+Task 2: Solve the issue. and confirm that the solution worked.
 
 Useful commands:
 ```
-oc log <pod> - get logs from the pod
-oc rsh <pod> - rsh into pod
-heketi-cli --user admin --secret $HEKTI_ADMIN_KEY - execute heketi commands
-gluster - gluster commands
+oc log <pod>                                        # get logs from the pod
+oc rsh <pod>                                        # rsh into pod
+heketi-cli --user admin --secret $HEKTI_ADMIN_KEY   # execute heketi commands
+gluster                                             # gluster commands
 ```
 
 ### Solution
 
-Lets check integrated container registry logs to find out what the problem.
+First, inspect the integrated container registry logs to look for any indications on the problem:
 
 ```
 oc project default
 oc get pods
-#get logs of the registry pod.
+
+# get logs of the registry pod.
 oc logs -f  docker-registry-2-5gktk
 ```
 
-Because our registry is running in HA replica 3 sometimes it is hard to find out which replica was serving failed request. If you have 1-3 pods, its easy to check them all. If you have more, sometimes its easier to scale down deployment to replica 1 with command `oc scale dc/docker-registry --replicas=1` and rerun build again to get the right logs.
+In this case, because the internal container registry is running in HA, it can be hard to find out which replica was serving failed request. If the registry is running with 1-3 pods, it is easy to check them all. However, in the event that the deployment have more than 3, it can be easier to scale down the deployment to 1 replica with command `oc scale dc/docker-registry --replicas=1` and rerun build again to get the right pod and logs.
 
-After invetigating logs of the registry we find right error:
+After investigating logs of the registry, the correct error is found:
 
 ```
 time="2018-03-21T11:51:36.238113538Z" level=debug msg="authorizing request" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 Upstr
@@ -109,12 +109,12 @@ a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" opensh
 10.217.0.1 - - [21/Mar/2018:11:51:36 +0000] "POST /v2/coolstore/cart/blobs/uploads/ HTTP/1.1" 500 242 "" "docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)"  
 ```
 
-Message we are looking for:
+It may take a trained eye to spot the failure, but in this case the message of interest is:
 ```
 time="2018-03-21T11:51:36.305582362Z" level=error msg="response completed with error" err.code=unknown err.detail="filesystem: mkdir /registry/docker/registry/v2/repositories/coolstore/cart/_uploads/68fe406b-6590-4b24-87e3-b84288f83aa7: no space left on device" err.message="unknown error"
 ```
 
-To validate this even more we rsh to the registry pod and check mountpoint size:
+To validate this even further, access the registry pod with `rsh` and check the mountpoint size:
 ```
 [root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
 sh-4.2$ du -sh /registry    
@@ -125,48 +125,46 @@ sh-4.2$ touch /registry/test
 touch: cannot touch '/registry/test': No space left on device
 ```
 
-Now lets check what our registry is using as backend storage:
+Next, check what the container registry is using as its backend storage:
 ```
-[root@workstation-REPL ~]# oc get pv,pvc
 [root@master1 ~]# oc get pv,pvc
 NAME                                          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS    CLAIM                                       STORAGECLASS        REASON    AGE
 pv/pvc-7f74133e-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus                glusterfs-storage             9h
 pv/pvc-8086f0f7-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus-alertmanager   glusterfs-storage             9h
 pv/pvc-81b01a7f-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus-alertbuffer    glusterfs-storage             9h
 pv/pvc-a537007d-34e2-11e8-ba00-2cc260767803   10Gi       RWO            Delete           Bound     openshift-grafana/grafana                   glusterfs-storage             9h
-pv/registry-volume                            30Gi       RWX            Retain           Bound     default/registry-claim                                                    12h
+pv/registry-volume                            10Gi       RWX            Retain           Bound     default/registry-claim                                                    12h
 
 NAME                 STATUS    VOLUME            CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-pvc/registry-claim   Bound     registry-volume   30Gi       RWX                           12h
+pvc/registry-claim   Bound     registry-volume   10Gi       RWX                           12h
 ```
 
-We can see that our `registry-claim` is 10Gi in size, and is provided manually from manually provisioned storage.
-In 3.9+ you can use new option on the storageClass `allowVolumeExpansion: true`, which would allow dynamic expansion of the PV's.
-User can request larger volume for their PersistentVolumeClaim by simply editing the claim and requesting a larger size. This in turn will trigger expansion of the volume that is backing the underlying PersistentVolume.
+The output above shows that the `registry-claim` is 10Gi in size, and is provided from a manually provisioned volume.
+Staring with OpenShift Container Platform 3.9, a new option is available for the storageClass - `allowVolumeExpansion: true` - which allows dynamic expansion of the PV's.
+The users can request larger volume for their PersistentVolumeClaim by simply editing the claim and requesting a larger size. This in turn will trigger expansion of the volume that is backing the underlying PersistentVolume.
 
-In our case we will do this manually.
+For this lab scenario, the 10Gi PV will be manually expanded:
 
-
-Check which PV ID was provisioned for the `registry-claim` using Volume name from PVC output:
+Check which PV ID was provisioned for the `registry-claim` using the Volume name from the PVC output:
 ```
 oc get pv registry-volume -o yaml | grep path
 
-#example output:
+# example output:
     path: glusterfs-registry-volume
 ```
 
-Now lets check what `CNS` can tell us about this volume/brick.
+Next, check what information `CNS` provides for this volume/brick.
 ```
 oc project glusterfs
 oc get pods
 
-#rsh to heketi pod
+# rsh to heketi pod
 oc rsh heketi-storage-1-r98zq
 
 sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list
 ```
 
-Get the ID of the volume we are looking for and check info:
+Get the ID of the volume and check its info:
 ```
 sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list | grep  glusterfs-registry-volume
 Id:cf7794a72e28b16860d367d19fe192a0    Cluster:8d28e8f000e2835582cc21e45bff7cae    Name:glusterfs-registry-volume
@@ -174,7 +172,7 @@ Id:cf7794a72e28b16860d367d19fe192a0    Cluster:8d28e8f000e2835582cc21e45bff7cae 
 
 sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume info cf7794a72e28b16860d367d19fe192a0   
 Name: glusterfs-registry-volume
-Size: 30
+Size: 10
 Volume Id: cf7794a72e28b16860d367d19fe192a0
 Cluster Id: 8d28e8f000e2835582cc21e45bff7cae
 Mount: 192.168.0.21:glusterfs-registry-volume
@@ -186,25 +184,25 @@ Durability Type: replicate
 Distributed+Replica: 3
 ```
 
-We can see that size is 10Gi as observed previously. Lets expand our storage by adding +5Gi.
+As observed previously in OpenShift, its size is 10Gi. Next, expand the storage by adding +5Gi.
 ```
 heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume expand --volume=cf7794a72e28b16860d367d19fe192a0 --expand-size=5
 ```
 
-Lets see if our action helped to recover our registry.
+Next see if this helped with the recovery of the registry:
 ```
 root@workstation-REPL ~]# oc project default
-ocNow using project "default" on server "https://console.example.com".
+Now using project "default" on server "https://console.example.com".
 [root@workstation-REPL ~]# oc get pods
 [root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
 sh-4.2$ touch /registry/test
 touch: cannot touch '/registry/test': No space left on device
 ```
 
-Surprise :) As in the real world, sometimes things does not work as expected :) . This would be one of those cases were you would need to raise support ticket with Redhat support. But for our lab we already know to which issue we ran into: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
-This should be fixed with next heketi release. But what we need to do now (information is in bugzilla) is to rebalance underlaying gluster cluster.
+Surprise :) This would be one of those cases were you would need to raise a support ticket with Redhat support. For our lab we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
+This should be fixed with next heketi release. To work around this issue, (information is in bugzilla) the underlying gluster cluster needs to be re-balanced.
 
-Now rsh to any gluster pod and do rebalancing :
+Use `rsh` to access any of the gluster pods and perform the re-balancing :
 ```
 oc project glusterfs
 oc get pods
@@ -221,7 +219,7 @@ sh-4.2# gluster volume rebalance glusterfs-registry-volume start
 ```
 
 
-Now lets repeat our manual test:
+Next, repeat the manual test:
 ```
 oc project default
 oc get pods
@@ -229,17 +227,16 @@ oc rsh docker-registry-2-5gktk
 sh-4.2$ touch /registry/test
 ```
 
-Container registry behaved as same as any other application, which would be consuming storage. Just it has bigger impact to the all cluster performance, than standalone application. Depending on your storage provider, actions to extend, debug and manage will be different. In our case we used `heketi` to manage our GlusterFS cluster.
+The container registry behaves the same as any other application consuming storage, but its impact may be bigger as it is a vital part of the OpenShift Container Platform cluster and its operation. Depending on the storage provider, actions to extend, debug and manage the backing volumes will be different. In our case we used `heketi` to manage our Gluster (CNS) cluster.
 
 
-
-When you done with this scenario, execute command on the bastion:
+To complete this scenario, execute the following command on the bastion:
 
 ```
 lab -s 2 -a solve
 ```
 
-In addition from 3.9+ you will have access to more Prometheus metrics providing better info about your storage health:
+Starting with OpenShift Container Platform 3.9, additional Prometheus metrics will provide better info about the OpenShift Container Platform storage health:
 ```
 kubelet_volume_stats_capacity_bytes
 kubelet_volume_stats_inodes
