@@ -75,7 +75,7 @@ https://master1.example.com:2379 is healthy: successfully committed proposal: to
 
 :exclamation: ETCDETCL command:
 
-*_We exectute etcdctl command with prefixed command "docker exec -it etcd_container "etdctl ...". This is because this binary is available ONLY in the running container. It will not work if you try execute same command from host level_*
+*_We execute etcdctl command with prefixed command "docker exec -it etcd_container "etdctl ...". This is because this binary is available ONLY in the running container. It will not work if you try execute same command from host level_*
 
 Another useful command is to list all the keys and data in the etcd cluster. In this example we get one of the Application Templates from the OpenShift Container Platform:
 
@@ -126,12 +126,7 @@ At this point, all the dashboards should indicate major failures and clusters in
 ![alt text](img/img6-hell-got-loose.png)
 
 
-
-####### THIS NEEDS FIXING - WE (Red Hat) DOES NOT SUPPORT SPLITTING A CLUSTER ACROSS MULTIPLE DATA CENTERS #######
-#######
-This is very common scenario in the deployments where you have only 2 datacenters. In this architecture one of the possible deployment ways is that you will need to split your quorum system in 2. Which means if you loose one datacenter, you lost quorum. This is just one of the possible architecture for Openshift. We always recommend to split 3 masters/etcd in 3 availability zones. But this is not always possible.
-#######
-####### FIX THE ABOVE STATEMENT !!!!!! ############################################################################
+In a clustered deployment, there is always a possibility of loosing some of the cluster nodes due to hardware failure, networking disconnects, etc. For a clustered `etcd`, such an outage means loosing quorum, and hence results in a broken etcd cluster. It is very important to have the proper monitoring in place to detect such failure as soon as possible to avoid data loss or corruption.
 
 #### Lab goal
 
