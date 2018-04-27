@@ -147,3 +147,7 @@ https://docs.openshift.com/container-platform/3.9/architecture/networking/networ
 
 2. OpenShift DNS Deep dive:
 https://www.redhat.com/en/blog/red-hat-openshift-container-platform-dns-deep-dive-dns-changes-red-hat-openshift-container-platform-36
+
+
+
+### [**-- HOME --**](https://rht-labs-events.github.io/summit-lab-2018-doc/)
