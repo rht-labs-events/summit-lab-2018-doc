@@ -16,7 +16,7 @@ To start the lab scenario, execute the following on the bastion host.
 *This might take a minute or two*
 
 ```
-lab -s 2 -a init
+lab -s 1 -a init
 ```
 
 Now try kicking off a build within the OpenShift Container Platform cluster (there are pre-deployed projects and applications that can be used).
@@ -233,7 +233,7 @@ The container registry behaves the same as any other application consuming stora
 To complete this scenario, execute the following command on the bastion:
 
 ```
-lab -s 2 -a solve
+lab -s 1 -a solve
 ```
 
 Starting with OpenShift Container Platform 3.9, additional Prometheus metrics will provide better info about the OpenShift Container Platform storage health:

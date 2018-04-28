@@ -10,7 +10,7 @@ In this lab we will see how OpenShift behaves when losing connectivity to a node
 
 You should see something like this in the `Labs Generic` Grafana dashboard:
 
-![alt text](img/img3-grafana-nodes-down-panel.png)
+![alt text](img/lost_node.png)
 
 To start the scenario:
 ```
@@ -40,8 +40,6 @@ skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io          
 
 ![alt text](img/img2-skydive-general.png)
 
-
-
 #### Lab Goal:
 
 **You can spend 1 or 2 minutes checking SkyDive console, just to see all SDN pieces working together.**
@@ -58,7 +56,7 @@ skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io          
 
 If you want to skip these task, execute on the <b>bastion</b>
 ```
- lab -s 5 -a solve
+lab -s 5 -a solve
 ```
 
 Useful command for this lab:

@@ -10,11 +10,13 @@ In this lab we will see how external factors to the `etcd` cluster can impact th
 
 To start scenario:
 ```
-lab -s 1 -a init
+lab -s 3 -a init
 ```
+Good dashboard looks like picture below. Check time drift graph.
+
+![alt text](img/init.png)
 
 No direct impact to the OpenShift Container Platform (OCP) cluster may be immediately noticeable, but dashboards and alerts might help you :)
-
 
 Useful commands for this lab:
 
@@ -29,6 +31,10 @@ ansible all/masters/infras/ -m shell -a "hostname"   # execute adhoc command on 
 #### Task solution
 
 This scenario is one the more common issues seen in customer environments. Distributed systems are very sensitive to time drifts. Even slight time difference can impact all platform performance. This is because one of the metrics used to determine state is time.
+
+Check dashboards for alerts and visualizations:
+
+![alt text](img/alert.png)
 
 #### Check time on all etcd nodes
 
@@ -47,13 +53,9 @@ Mon Mar 26 07:42:36 EDT 2018
 
 This is far from reliable data, but the time difference is noticeable and most likely impacts the OCP cluster. The same information can be observed in grafana:
 
-![alt text](img/11-time-drift.png)
+![alt text](img/time_drift.png)
 
 Because this system is running in isolation, the time drift is calculated based on average of all infrastructure. In a real world deployment, external NTP servers should be used to ensure proper tim sync.
-
-Alerts can be seen for this too:
-
-![alt text](img/12-alert-time-drift.png)
 
 Solution is straight forward:
 
@@ -74,7 +76,7 @@ ansible etcd -m shell -a "chronyc -a 'burst 4/4' && chronyc -a makestep"
 
 The alerts should resolve, and grafana shows new state:
 
-![alt text](img/13-time-drift.png)
+![alt text](img/normalize.png)
 
 ### Appendix
 
@@ -84,7 +86,7 @@ The alerts should resolve, and grafana shows new state:
 https://docs.openshift.com/container-platform/latest/admin_guide/backup_restore.html
 
 2. Grafana dashboard and Prometheus alert rules:
-<insert link to public dasboard link>
+https://github.com/rht-labs-events/summit-lab-2018-src/tree/master/summit-labs-ansible-wrapper/files/dashboards
 
 3. Etcd (v2) admin guide:
 https://coreos.com/etcd/docs/latest/v2/admin_guide.html

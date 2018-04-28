@@ -33,7 +33,7 @@ lab -s 6 -a init
 
 If you want to skip this task, execute on the <b>bastion</b>:
 ```
- lab -s 6 -a solve
+lab -s 6 -a solve
 ```
 
 Useful commands for this lab:
@@ -55,9 +55,9 @@ you should see nothing wrong.
 
 Let's use our monitoring tools, go check Grafana, Prometheus and Alertmanager to get more info. Open Grafana dashboard `Labs Generic` and check the `DNS errors per node` panel.
 
-So, you should see something like this in the `Labs Generic` Grafana dashboard:
+So, you should see something like this in the `Labs Generic` Grafana dashboard (DNS errors per node graph):
 
-![alt text](img/img2-grafana-dns-errors.png)
+![alt text](img/dns.png)
 
 This Grafana panel gives you enough information to know which node is having DNS problems, but still, go check Prometheus and Alertmanager too.
 
@@ -99,7 +99,6 @@ Ask dnsmasq:
 
 ```
 dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
-....
 ....
 ```
 

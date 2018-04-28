@@ -8,9 +8,13 @@ Dashboard: Labs Generic
 
 In this scenario we will learn basics how openshift scheduler and limits works and how it can impact your platforms behaviour and performance. And why you should care about your scheduler behaviour.
 
+Labs Generic dashboard should look something like this:
+![alt text](img/0-init.png)
+
+
 To start this scenario execute command on the bastion:
 ```
-lab -s 3 -a init
+lab -s 0 -a init
 ```
 
 You should have new project created in your cluster named `scheduler`. Go and investigate it.
@@ -63,10 +67,11 @@ You should see the same result. So whats happening?
 First our scheduler does not know how to spread pods over the worker nodes.
 Second, our pid does not have any limits, so again, scheduler does not know "how big is the pod" so it does not know when node is full.
 
-Dashboards and alerts:
-![alt text](img/1-pod-count.png)
+Dashboards and alerts. We can see that our node2 (yours might be different) count is not way higher than average. And first graph on row 2 show the same.
+![alt text](img/1-start.png)
 
-![alt text](img/2-alert.png)
+Alert manager should raise us an alert for this.
+![alt text](img/2-alert_manager_scheduler.png)
 
 Task 1: Identify why pods are not being spread around the 3 worker nodes.
 For this solution DO NOT modify default scheduler or master configs. Everything should be done on the project and node labeling level.
@@ -146,7 +151,7 @@ So if you do describe on the node where all our `hello-openshift` pods are runni
   scheduler                             hello-openshift-1-bnjmw                 0 (0%)          0 (0%)          0 (0%)          0 (0%)
 ```
 
-So if you read throuth link about managing compute resources you will know that this pod is running in a `Best-Effort` QoS. So this is not good, but we will not go into solving this. We are intrested why pods are not being spread.
+So if you read through link about managing compute resources you will know that this pod is running in a `Best-Effort` QoS. So this is not good, but we will not go into solving this. We are interested why pods are not being spread.
 
 Last place we need to check if Kubernetes scheduler:
 
@@ -237,11 +242,13 @@ oc get pods -o wide
 ```
 You should see spread all over 3 nodes now, because `serviceAntiAffinity` is based on zone label, so scheduler is trying to spread pods around.
 
+And dashabord should be back to normal:
+![alt text](img/solved.png)
 
 When you done with the scenario, execute command on bastion host:
 
 ```
-lab -s 3 -a solve
+lab -s 0 -a solve
 ```
 
 ### Appendix

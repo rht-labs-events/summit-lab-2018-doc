@@ -14,7 +14,7 @@ In this lab `etcd` runs co-hosted with the OpenShift Container Platform (OCP) ma
 
 You should see something like this:
 
-![alt text](img/img1-etcd-dasboard.png)
+![alt text](img/init.png)
 
 Also open the prometheus url and check the alerts tab for any active alerts. At this point, if the environment is functioning properly, you should see no alerts.
 
@@ -100,10 +100,12 @@ Next, we will take a closer look at what happens when one etcd node is lost.
 Execute from the *bastion* host:
 
 ```
-lab -s 0 -a break1
+lab -s 2 -a break1
 ```
 
 After a few seconds grafana should report that only 2 etcd are alive. Make sure to check prometheus and alertmanager for any alerts, which should indicates that one of the `etcd` cluster members is lost.
+
+![alt text](img/etcd1_lost.png)
 
 ![alt text](img/img3-lost-etcd-alert.png)
 
@@ -116,12 +118,12 @@ The OCP cluster still performs fine, as quorum is still maintained. However, nex
 Execute from the *bastion* host:
 
 ```
-lab -s 0 -a break2
+lab -s 2 -a break2
 ```
 
 At this point, all the dashboards should indicate major failures and clusters in a bad state.
 
-![alt text](img/img5-granafa-single-survivor.png)
+![alt text](img/2etcd_down.png)
 
 ![alt text](img/img6-hell-got-loose.png)
 
@@ -139,7 +141,7 @@ This will involve adding new members to the master1 cluster by re-configuring ma
 
 If you want to skip these task, execute from the *bastion* host:
 ```
- lab -s 0 -a solve
+ lab -s 2 -a solve
 ```
 
 Useful commands for this lab:
