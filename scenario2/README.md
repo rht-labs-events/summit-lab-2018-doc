@@ -1,257 +1,339 @@
 ### Problem to solve
 
 ```
-Complexity: Medium
+Complexity: High
 Length: 20-30 min
-Dashboard: Labs Generic
+Dashboard: ETCD
 ```
 
-In this scenario we learn how to detect and identify application storage problems. The backing storage for this lab is Container Native Storage (CNS), running in the same Openshift Container Platform cluster. We will investigate a few issues, and use troubleshooting steps to help identify storage problems.
+In this lab we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) cluster quorum can impact the OpenShift Container Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
 
-:heavy_check_mark: GlusterFS metrics will be available in Prometheus from 3.9+. This is outside of the scope of this Lab.*
+`etcd` stores the persistent OpenShift Container Platform (OCP) master state while other components watch `etcd` for changes to bring themselves into the desired state. `etcd` can be optionally configured for high availability, typically deployed with 2n+1 peer services. For further details, you can read the `What is failure tolerance?` section of [this page](https://coreos.com/etcd/docs/latest/faq.html) at your own leisure.
 
+In this lab `etcd` runs co-hosted with the OpenShift Container Platform (OCP) masters. Before you start, open the Grafana dashboard `ETCD` and inspect monitoring data for the `etcd` cluster.
 
-To start the lab scenario, execute the following on the bastion host.
+You should see something like this:
 
-*This might take a minute or two*
+![alt text](img/img1-etcd-dasboard.png)
 
-```
-lab -s 2 -a init
-```
+Also open the prometheus url and check the alerts tab for any active alerts. At this point, if the environment is functioning properly, you should see no alerts.
 
-Now try kicking off a build within the OpenShift Container Platform cluster (there are pre-deployed projects and applications that can be used).
+![alt text](img/img2-no-alerts.png)
 
-... or inspect any of the builds in the `ci-cd` project/namespace:
+The state of the `etcd` cluster, can be manually checked via CLI commands on the OCP master - or any remote host which has the OCP certificates available for use.
 
-```
-[root@workstation]# oc project ci-cd
-[root@workstation]# oc logs -f summit-labs-fe-5-build
-...
-Pushing image docker-registry.default.svc:5000/ci-cd/summit-labs-fe:uat-summit-labs-fe-bake.2
-Registry server Address:
-Registry server User Name: serviceaccount
-Registry server Email: serviceaccount@example.org
-Registry server Password: <<non-empty>>
-error: build error: Failed to push image: received unexpected HTTP status: 500 Internal Server Error
-```
+:exclamation: Important Note:
 
-The builds should fail. Continue to check some of the other builds for additional failures as those builds are being executed periodically (part of the lab noise making).
+*_If you chose to use a remote host, make sure you apply appropriate security measurements to the host, as you are "leaking" OCP certificates outside of the cluster._*
 
-If no failed builds can be found, check the build that was just launched automatically:
+If you do not have dashboards and alerting tools in place, next best tool for debugging is `etcdctl` utility. Let us take a closer look at how it can be used:
+
+First, ssh to one of the OCP master hosts:
 
 ```
-oc project build-test
-oc get pods
+ssh root@master1.example.com
 ```
-and inspect the logs.
 
-Next, we will debug the issue with the build(s).
+Execute the following command to check the `etcd` cluster's health status:
 
-
-:exclamation: To be proactive on this type of issue we recommend to follow "failed build" metrics `openshift_build_total` in prometheus. This provides a healthy view on what is happening in the cluster. At the same time it is recommended to execute some "smoke test" builds on a periodic basis so issues can be detected early.
-
-The actual logs in the build itself are typically not very helpful.
-
-In this case it is not clear what happened. To troubleshoot this, inspect the registry logs as the build failed during the "push" phase of the newly build image.
-
-
-Task 1: Identify why the build failed.
-
-Task 2: Solve the issue. and confirm that the solution worked.
-
-Useful commands:
 ```
-oc log <pod>                                        # get logs from the pod
-oc rsh <pod>                                        # rsh into pod
-heketi-cli --user admin --secret $HEKTI_ADMIN_KEY   # execute heketi commands
-gluster                                             # gluster commands
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+ --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+ --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+ endpoint status -w table"
+
+# Output example:
++---------------------------+------------------+---------+---------+-----------+-----------+------------+
+|         ENDPOINT          |        ID        | VERSION | DB SIZE | IS LEADER | RAFT TERM | RAFT INDEX |
++---------------------------+------------------+---------+---------+-----------+-----------+------------+
+| https://192.168.0.11:2379 | b2fc96740d4db02e |  3.2.15 |   65 MB |      true |       964 |    1121049 |
+| https://192.168.0.12:2379 | 3eea3b05deae6cbc |  3.2.15 |   65 MB |     false |       964 |    1121051 |
+| https://192.168.0.13:2379 | 509718481af2e12e |  3.2.15 |   65 MB |     false |       964 |    1121051 |
++---------------------------+------------------+---------+---------+-----------+-----------+------------+
+```
+
+This table shows the current status of the etcd cluster, including which member is the leader, database size, version, unique ID, raft term, raft index.
+
+`Raft Term` is an integer that will increase whenever an `etcd` master election happens in the cluster. If this number is increasing rapidly, you may need to tune the election timeout.
+
+`Raft Index` is more complex, but can be thought of as a "data consistency" metrics. This value should be equal, or very close to equal, for all other members part of the `etcd` cluster.
+
+
+For a more generic health check, run the following command:
+
+```
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+ --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+ --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+ endpoint health -w table"
+
+# Output Example:
+https://master2.example.com:2379 is healthy: successfully committed proposal: took = 6.889365ms
+https://master3.example.com:2379 is healthy: successfully committed proposal: took = 9.472592ms
+https://master1.example.com:2379 is healthy: successfully committed proposal: took = 5.291873ms
+```
+
+:exclamation: ETCDETCL command:
+
+*_We execute etcdctl command with prefixed command "docker exec -it etcd_container "etdctl ...". This is because this binary is available ONLY in the running container. It will not work if you try execute same command from host level_*
+
+Another useful command is to list all the keys and data in the etcd cluster. In this example we get one of the Application Templates from the OpenShift Container Platform:
+
+```
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
+```
+
+
+:exclamation: Important Note:
+
+*_The Openshift Container Platform consumes etcd as an external service. There are scenarios when despite the fact that etcd shows a healthy status, the OCP cluster will not be working. This usually happens when OCP cluster looses connectivity to the etcd cluster. This might happen because of firewalls, certificates or any other reason. For this reason the OpenShift cluster should always be smoke tested with "noise makers" to make sure mutating API calls work_*
+
+Manual commands are useful if `etcd` goes to Read-Only mode (when quorum is lost). In this case, the UI monitoring of the platform may be lost as some of those tools uses mutating api calls which requires a healthy `etcd` cluster to function properly.
+
+
+Next, we will take a closer look at what happens when one etcd node is lost.
+
+Execute from the *bastion* host:
+
+```
+lab -s 0 -a break1
+```
+
+After a few seconds grafana should report that only 2 etcd are alive. Make sure to check prometheus and alertmanager for any alerts, which should indicates that one of the `etcd` cluster members is lost.
+
+![alt text](img/img3-lost-etcd-alert.png)
+
+![alt text](img/img4-lost-etcd-alertmanager.png)
+
+Use the same `etcdctl` command as executed earlier on the masters to observe the same outage in the output.
+
+The OCP cluster still performs fine, as quorum is still maintained. However, next let us see what happens when a second node is removed from the `etcd` cluster. At this point, the grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api, and without quorum all api calls are responding as "read-only".
+
+Execute from the *bastion* host:
+
+```
+lab -s 0 -a break2
+```
+
+At this point, all the dashboards should indicate major failures and clusters in a bad state.
+
+![alt text](img/img5-granafa-single-survivor.png)
+
+![alt text](img/img6-hell-got-loose.png)
+
+
+In a clustered deployment, there is always a possibility of loosing some of the cluster nodes due to hardware failure, networking disconnects, etc. For a clustered `etcd`, such an outage means loosing quorum, and hence results in a broken etcd cluster. It is very important to have the proper monitoring in place to detect such failure as soon as possible to avoid data loss or corruption.
+
+#### Lab goal
+
+For `Task 1` of this scenario you should not do anything with master2 and master3. Assume they are lost and the OpenShift Container Platform has to be recovered using master1 ONLY.
+
+Task 1: Put master1's `etcd` process (etcd_container) into a `single-node` mode so the cluster works as a one member etcd cluster. When done, make sure that your Openshift Container Platform (OCP) cluster behaves fine with one `etcd` member.
+
+Task 2: Now lets assume you got master2 and master3 back. You should add master2 `etcd` and master3 `etcd` to the existing etcd cluster of master1.
+This will involve adding new members to the master1 cluster by re-configuring master2 and master3 to join this cluster.
+
+If you want to skip these task, execute from the *bastion* host:
+```
+ lab -s 0 -a solve
+```
+
+Useful commands for this lab:
+
+```
+journalctl -fu <service_name>  << follow logs of the service
+ansible [all|masters|infras] -m shell -a "hostname"  << execute adhoc command on subset of servers
 ```
 
 ### Solution
 
-First, inspect the integrated container registry logs to look for any indications on the problem:
+#### Recovery
+
+##### Task 1 solution
+
+Let us assume the OpenShift Container platform should be brought back to a usable state, but the majority of the cluster hosts are not available. For this we can switch the single surviving `etcd` node over to the single master configuration. And when surviving etcd becomes available for uses, they can be added back to the cluster.
+
+Switch master1/etcd1 to single master mode:
+
+ssh to master1:
 
 ```
-oc project default
-oc get pods
-
-# get logs of the registry pod.
-oc logs -f  docker-registry-2-5gktk
+ssh master1.example.com
 ```
 
-In this case, because the internal container registry is running in HA, it can be hard to find out which replica was serving failed request. If the registry is running with 1-3 pods, it is easy to check them all. However, in the event that the deployment have more than 3, it can be easier to scale down the deployment to 1 replica with command `oc scale dc/docker-registry --replicas=1` and rerun build again to get the right pod and logs.
-
-After investigating logs of the registry, the correct error is found:
+Force new cluster to use a single `etcd` node:
 
 ```
-time="2018-03-21T11:51:36.238113538Z" level=debug msg="authorizing request" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 Upstr
-eamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.logger=registry vars.name="coolstore/cart"
+[root@master1]# sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
+[root@master1]# systemctl daemon-reload
+[root@master1]# systemctl restart etcd_container
 
-time="2018-03-21T11:51:36.25415814Z" level=debug msg="Origin auth: checking for access to repository:coolstore/cart:pull" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3
-.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry vars.name="coolstore/cart"
-
-time="2018-03-21T11:51:36.256916033Z" level=debug msg="Origin auth: checking for access to repository:coolstore/cart:push" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/
-3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry vars.name="coolstore/cart"
-
-time="2018-03-21T11:51:36.259894906Z" level=info msg="Using \"docker-registry.default.svc:5000\" as Docker Registry URL" go.version=go1.8.3 instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.logger=registry
-
-time="2018-03-21T11:51:36.259997658Z" level=debug msg="(*linkedBlobStore).Writer" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64
- UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry vars.name="coolstore/cart"
-
-time="2018-03-21T11:51:36.305179698Z" level=debug msg="filesystem.PutContent(\"/docker/registry/v2/repositories/coolstore/cart/_uploads/68fe406b-6590-4b24-87e3-b84288f83aa7/startedat\")" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.request.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/up
-loads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)" instance.id=a92227ef-2c2c-4917-8548-2a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry trace.duration=45.072341ms trace.file="/builddir/build/BUILD/atomic-openshift-git-0.8edc154/_output/local/go/src/github.com/openshift/origin/vendor/g
-ithub.com/docker/distribution/registry/storage/driver/base/base.go" trace.func="github.com/openshift/origin/vendor/github.com/docker/distribution/registry/storage/driver/base.(*Base).PutContent" trace.id=5ac3aa62-9c46-431b-982e-06e26958c0bd trace.line=95 vars.name="coolstore/cart"
-
-time="2018-03-21T11:51:36.305582362Z" level=error msg="response completed with error" err.code=unknown err.detail="filesystem: mkdir /registry/docker/registry/v2/repositories/coolstore/cart/_uploads/68fe406b-6590-4b24-87e3-b84288f83aa7: no space left on device" err.message="unknown error" go.version=go1.8.3 http.request.host="docker-registry.default.svc:5000" http.request.id=89871542-6cd9-4431-aee6-61cc018cf2a6 http.reque
-st.method=POST http.request.remoteaddr="10.217.0.1:58498" http.request.uri="/v2/coolstore/cart/blobs/uploads/" http.request.useragent="docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)" http.response.contenttype="application/json; charset=utf-8" http.response.duration=69.390113ms http.response.status=500 http.response.written=242 instance.id=a92227ef-2c2c-4917-8548-2
-a23888eeb85 openshift.auth.user="system:serviceaccount:coolstore:builder" openshift.logger=registry vars.name="coolstore/cart"
-
-10.217.0.1 - - [21/Mar/2018:11:51:36 +0000] "POST /v2/coolstore/cart/blobs/uploads/ HTTP/1.1" 500 242 "" "docker/1.12.6 go/go1.8.3 kernel/3.10.0-693.el7.x86_64 os/linux arch/amd64 UpstreamClient(go-dockerclient)"  
+# Check logs of the etcd container
+journalctl -fu etcd_container
 ```
 
-It may take a trained eye to spot the failure, but in this case the message of interest is:
-```
-time="2018-03-21T11:51:36.305582362Z" level=error msg="response completed with error" err.code=unknown err.detail="filesystem: mkdir /registry/docker/registry/v2/repositories/coolstore/cart/_uploads/68fe406b-6590-4b24-87e3-b84288f83aa7: no space left on device" err.message="unknown error"
-```
+Recovery might take a few minutes, but the platform should show recovering symptoms.
 
-To validate this even further, access the registry pod with `rsh` and check the mountpoint size:
-```
-[root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
-sh-4.2$ du -sh /registry    
-    10.0G    /registry
+![alt text](img/img7-one-etcd.png)
 
-# try writing something to it
-sh-4.2$ touch /registry/test
-touch: cannot touch '/registry/test': No space left on device
-```
+![alt text](img/img7-one-etcd.png)
 
-Next, check what the container registry is using as its backend storage:
-```
-[root@master1 ~]# oc get pv,pvc
-NAME                                          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS    CLAIM                                       STORAGECLASS        REASON    AGE
-pv/pvc-7f74133e-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus                glusterfs-storage             9h
-pv/pvc-8086f0f7-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus-alertmanager   glusterfs-storage             9h
-pv/pvc-81b01a7f-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus-alertbuffer    glusterfs-storage             9h
-pv/pvc-a537007d-34e2-11e8-ba00-2cc260767803   10Gi       RWO            Delete           Bound     openshift-grafana/grafana                   glusterfs-storage             9h
-pv/registry-volume                            10Gi       RWX            Retain           Bound     default/registry-claim                                                    12h
+All other operations should be getting back to normal. Since master1 (surviving etcd node) was instructed to "start new cluster with existing data", you can check builds in ci-cd namespace and observe that they should be starting again.
 
-NAME                 STATUS    VOLUME            CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-pvc/registry-claim   Bound     registry-volume   10Gi       RWX                           12h
+##### Task 2 solution
+
+In this task, with the rest of the cluster hosts back, the `etcd` cluster is now out of sync. Hence, a new new cluster needs to be created by re-adding the 2 lost `etcd` nodes to the survivor as new members.
+
+Remove `--force-new-cluster` flag from member one.
+
+ssh to master1:
+```
+ssh master1.example.com
 ```
 
-The output above shows that the `registry-claim` is 10Gi in size, and is provided from a manually provisioned volume.
-Staring with OpenShift Container Platform 3.9, a new option is available for the storageClass - `allowVolumeExpansion: true` - which allows dynamic expansion of the PV's.
-The users can request larger volume for their PersistentVolumeClaim by simply editing the claim and requesting a larger size. This in turn will trigger expansion of the volume that is backing the underlying PersistentVolume.
-
-For this lab scenario, the 10Gi PV will be manually expanded:
-
-Check which PV ID was provisioned for the `registry-claim` using the Volume name from the PVC output:
+Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
-oc get pv registry-volume -o yaml | grep path
-
-# example output:
-    path: glusterfs-registry-volume
+[root@master1]# sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
 ```
 
-Next, check what information `CNS` provides for this volume/brick.
+At this point etcd still runs with old systemd. Reload the daemon and restart the `etcd_container` service:
 ```
-oc project glusterfs
-oc get pods
-
-# rsh to heketi pod
-oc rsh heketi-storage-1-r98zq
-
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list
+[root@master1]# systemctl daemon-reload
+[root@master1]# systemctl restart etcd_container
 ```
 
-Get the ID of the volume and check its info:
+Check etcd 1 member list:
 ```
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list | grep  glusterfs-registry-volume
-Id:cf7794a72e28b16860d367d19fe192a0    Cluster:8d28e8f000e2835582cc21e45bff7cae    Name:glusterfs-registry-volume
+[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member list"
 
-
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume info cf7794a72e28b16860d367d19fe192a0   
-Name: glusterfs-registry-volume
-Size: 10
-Volume Id: cf7794a72e28b16860d367d19fe192a0
-Cluster Id: 8d28e8f000e2835582cc21e45bff7cae
-Mount: 192.168.0.21:glusterfs-registry-volume
-Mount Options: backup-volfile-servers=192.168.0.22,192.168.0.23
-Block: false
-Free Size: 0
-Block Volumes: []
-Durability Type: replicate
-Distributed+Replica: 3
+b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
 
-As observed previously in OpenShift, its size is 10Gi. Next, expand the storage by adding +5Gi.
+Add member 2:
 ```
-heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume expand --volume=cf7794a72e28b16860d367d19fe192a0 --expand-size=5
+[root@master1]#  docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member add master2.example.com --peer-urls="https://192.168.0.12:2380""
+
+Member 8d13245ff0d59b2b added to cluster 447e150364ce5cc3
+
+ETCD_NAME="master2.example.com"
+ETCD_INITIAL_CLUSTER="master2.example.com=https://192.168.0.12:2380,master1.example.com=https://192.168.0.11:2380"
+ETCD_INITIAL_CLUSTER_STATE="existing"
 ```
 
-Next see if this helped with the recovery of the registry:
+Save these variables somewhere, they will be needed in the next step.
+
+Now ssh to master2 and update main etcd details with these variables:
+
+:exclamation: *Remove double quotes from the output when updating etcd config file. systemd and etcd does not like them*
+
 ```
-root@workstation-REPL ~]# oc project default
-Now using project "default" on server "https://console.example.com".
-[root@workstation-REPL ~]# oc get pods
-[root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
-sh-4.2$ touch /registry/test
-touch: cannot touch '/registry/test': No space left on device
+ssh master2.example.com
 ```
 
-Surprise :) This would be one of those cases were you would need to raise a support ticket with Redhat support. For our lab we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
-This should be fixed with next heketi release. To work around this issue, (information is in bugzilla) the underlying gluster cluster needs to be re-balanced.
-
-Use `rsh` to access any of the gluster pods and perform the re-balancing :
+Update etcd configuration:
 ```
-oc project glusterfs
-oc get pods
-oc rsh glusterfs-storage-dt2s5
+[root@master2 ~]# vi /etc/etcd/etcd.conf
+ETCD_NAME=master2.example.com
+ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master1.example.com=https://192.168.0.11:2380
+ETCD_INITIAL_CLUSTER_STATE=existing
+```
 
-sh-4.2# gluster volume list           
-glusterfs-registry-volume
-heketidbstorage
-vol_106d888f55fdef210ba3885140f99d18
-vol_377905d2401904491c3dcf150f14ca82
-vol_4a6169a6be60c4f25431a0561d3b53f6
-vol_f02d15415e491acef927da2f7f0c4bce
-sh-4.2# gluster volume rebalance glusterfs-registry-volume start
+Remove old member data:
+```
+[root@master2 ~]# rm -rf /var/lib/etcd/member
+```
+
+Start etcd container service:
+```
+systemctl start etcd_container
+```
+
+:exclamation: *If you see an error like the one below, the quotes were most likely not removed in the etcd config file*
+```
+Mar 31 16:31:35 master2.example.com etcd_container[14625]: 2018-03-31 20:31:35.854136 W | pkg/netutil: failed resolving host master2.example.com:2380" (address tcp/2380": unknown port); retrying in 1
+```
+
+Check logs `journalctl -fu etcd_container`
+
+Member list on master1 should show you now 2 running members:
+```
+[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+--cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"\
+member list"
+
+
+4f1716f1da0e8dd9, started, master2.example.com, https://192.168.0.12:2380, https://192.168.0.12:2379
+b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
 
 
-Next, repeat the manual test:
+Repeat the same steps for master3:
+
+On master1:
 ```
-oc project default
-oc get pods
-oc rsh docker-registry-2-5gktk
-sh-4.2$ touch /registry/test
+[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+--cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt  \
+--endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+member add master3.example.com --peer-urls="https://192.168.0.13:2380""
+
+Member ffcc8fc41a1321d7 added to cluster 447e150364ce5cc3
+
+ETCD_NAME="master3.example.com"
+ETCD_INITIAL_CLUSTER="master2.example.com=https://192.168.0.12:2380,master3.example.com=https://192.168.0.13:2380,master1.example.com=https://192.168.0.11:2380"
+ETCD_INITIAL_CLUSTER_STATE="existing"
 ```
 
-The container registry behaves the same as any other application consuming storage, but its impact may be bigger as it is a vital part of the OpenShift Container Platform cluster and its operation. Depending on the storage provider, actions to extend, debug and manage the backing volumes will be different. In our case we used `heketi` to manage our Gluster (CNS) cluster.
-
-
-To complete this scenario, execute the following command on the bastion:
-
+Switch over to master3:
 ```
-lab -s 2 -a solve
+ssh master3.example.com
 ```
 
-Starting with OpenShift Container Platform 3.9, additional Prometheus metrics will provide better info about the OpenShift Container Platform storage health:
+Update etcd configuration:
 ```
-kubelet_volume_stats_capacity_bytes
-kubelet_volume_stats_inodes
-kubelet_volume_stats_inodes_free
-kubelet_volume_stats_inodes_used
-kubelet_volume_stats_used_bytes
+[root@master3 ~]# vi /etc/etcd/etcd.conf
+ETCD_NAME=master3.example.com
+ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master3.example.com=https://192.168.0.13:2380,master1.example.com=https://192.168.0.11:2380
+ETCD_INITIAL_CLUSTER_STATE=existing
 ```
-And metrics from heketi: https://github.com/heketi/heketi/pull/1068
+
+Remove old member data:
+```
+[root@master3 ~]# rm -rf /var/lib/etcd/member
+```
+start the etcd container service:
+```
+[root@master3 ~]# systemctl start etcd_container
+```
+
+Now check the etcd cluster health with the same command from the beginning of the scenario.
+
+This scenario has demonstrated failure and recovery steps for the etcd cluster, where old nodes were available for use. Ansible playbooks are available to do all these steps for you. If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
+
+Finally - all 3 `etcd` cluster hosts should now be back online in Grafana and no alerts in prometheus. Notify the instructor if this is not the case. :)
 
 ### Appendix
 
 #### Materials used in the scenario
 
-1. Container Native Storage user guide:
-https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.3/html/container-native_storage_for_openshift_container_platform/
+1. Openshift Documentation on ETCD recovery:
+https://docs.openshift.com/container-platform/3.9/admin_guide/backup_restore.html
 
-2. Gluster rebalancing documentation:
-https://access.redhat.com/documentation/en-US/Red_Hat_Storage/2.0/html/Administration_Guide/sect-User_Guide-Managing_Volumes-Rebalancing.html
+2. Grafana dashboard and Prometheus alert rules: TODO: GitHub url to dashboards and alertmanager
+
+3. Etcd (v2) admin guide:
+https://coreos.com/etcd/docs/latest/v2/admin_guide.html
+
+
+
+### [**-- HOME --**](https://rht-labs-events.github.io/summit-lab-2018-doc/)

@@ -190,3 +190,7 @@ https://docs.openshift.com/container-platform/3.9/dev_guide/routes.html
 
 2. Openshift Binary build guide:
 https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/binary_builds.html
+
+
+
+### [**-- HOME --**](https://rht-labs-events.github.io/summit-lab-2018-doc/)

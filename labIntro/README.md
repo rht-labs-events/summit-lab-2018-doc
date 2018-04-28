@@ -168,3 +168,7 @@ Every scenario has the following parts:
 * `Tasks`: Tasks to be performed during the scenario.
 * `Solution`: Explanation of the actions that need to be taken to solve the scenario.
 * `Appendix`: Materials for further reading.
+
+
+
+### [**-- HOME --**](https://rht-labs-events.github.io/summit-lab-2018-doc/)
