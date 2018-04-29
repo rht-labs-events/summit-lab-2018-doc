@@ -135,7 +135,7 @@ dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
 
 Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
-:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.
 
 ### Appendix
 
