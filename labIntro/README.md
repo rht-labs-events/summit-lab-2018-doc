@@ -86,6 +86,37 @@ Grafana is used to graphically represent cluster data. It interacts directly wit
 
  ![alt text](img/grafana.png)
 
+Grafana is pre-built with dashboards to assist you during the course of this lab. Although not every of them is needed to finish lab scenarios, it is highly recommeded that you have a look at all of them.
+
+The first time you log into Grafana, in the top-left corner you should see a "Home" tap.
+
+![alt text](img/grafana-home.png)
+
+If you click on it, a drop-down list with every available dashboard should appear.
+
+![alt text](img/grafana-dashboards.png)
+
+Here are the 3 Grafana dashboards strictly neccesary to finish  the whole lab.
+
+**Labs Generic**
+
+It contains generic information about the cluster such us pod count per node, DNS errors or nodes down.
+
+![alt text](img/grafana-labs-generic.png)
+
+**ETCD**
+
+Etcd related information.
+
+![alt text](img/grafana-etcd.png)
+
+
+**Builds Overview**
+
+Builds related information.
+
+![alt text](img/grafana-build-overview.png)
+
 ### Getting Started
 
 From a web browser, open URL below in its own window or tab, using `admin` for the username and `r3dh4t1!` for the password:
