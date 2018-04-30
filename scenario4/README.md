@@ -17,9 +17,9 @@ To start this scenario execute command on the bastion:
 lab -s 4 -a init
 ```
 
-You should have new project `hello-openshift` in your cluster. At the moment its empty project. But lets populate it.
+You should have new project `hello-openshift` in your cluster. At the moment it's an empty project. But lets populate it.
 
-You now have folder `hello-openshift` in the root folder. Its very simple `goLang` application to demonstrate binary build and simple application debugging methods.
+You now have a folder `hello-openshift` in the root folder. It's a very simple `goLang` application to demonstrate binary build and simple application debugging methods.
 
 Lets build an app:
 ```
@@ -32,7 +32,7 @@ Create new binary build:
 oc new-build --strategy docker --binary --docker-image centos:centos7 --name hello-openshift
 ```
 
-Flag `--binary` tells buildconfig that we will be using local file system as source for our build. Now lets star the build and build application image:
+Flag `--binary` tells buildconfig that we will be using local file system as source for our build. Now lets star the build and build the application image:
 ```
 oc start-build hello-openshift --from-dir . --follow
 ```
@@ -45,7 +45,7 @@ centos            docker-registry.default.svc:5000/hello-openshift/centos       
 hello-openshift   docker-registry.default.svc:5000/hello-openshift/hello-openshift   latest    16 seconds ago
 ```
 
-Now lets try deploy application:
+Now lets try to deploy an application:
 ```
 oc new-app hello-openshift
 oc expose svc/hello-openshift
@@ -53,15 +53,14 @@ oc expose svc/hello-openshift
 
 And check our application.
 ```
-[root@workstation-REPL hello-openshift]# oc get pods
+oc get pods
 NAME                       READY     STATUS              RESTARTS   AGE
 hello-openshift-1-6l22c    0/1       RunContainerError   3          47s
 hello-openshift-1-build    0/1       Completed           0          3m
 hello-openshift-1-deploy   1/1       Running             0          53s
-[root@workstation-REPL hello-openshift]#
 ```
 
-Now use `oc debug` to check why application is not starting, try starting in debug mode. Later change local files and rebuild application again (from `oc start-build`) and confirm that app is running.
+Now use `oc debug` to check why the application is not starting, try starting it in debug mode. Later change local files and rebuild application again (from `oc start-build`) and confirm that app is running.
 
 ### Solution
 
@@ -70,7 +69,7 @@ Lets start our failing application in debug mode and check whats wrong:
 oc get pods
 
 #example output:
-[root@workstation-REPL hello-openshift]# oc get pods
+oc get pods
 NAME                       READY     STATUS             RESTARTS   AGE
 hello-openshift-1-6l22c    0/1       CrashLoopBackOff   4          3m
 hello-openshift-1-build    0/1       Completed          0          6m
@@ -79,7 +78,6 @@ hello-openshift-1-deploy   1/1       Running            0          3m
 
 # start app in debug mode:
 oc debug hello-openshift-1-6l22c
-root@workstation-REPL hello-openshift]# oc debug hello-openshift-1-6l22c
 Debugging with pod/hello-openshift-1-6l22c-debug, original command: /helo-openshift
 Waiting for pod to start ...
 Pod IP: 10.217.0.55
@@ -89,7 +87,7 @@ If you don't see a command prompt, try pressing enter.
 From the output debug mode suggest us that containers entry point is `/helo-openshift`.
 And debug mode gives us interactive shell to the same container. Lets try execute entrypoint command and see:
 ```
-sh-4.2$  /helo-openshift
+/helo-openshift
 sh: /helo-openshift: No such file or direct
 ```
 
@@ -122,14 +120,14 @@ drwxr-xr-x.  13 root root     155 Mar  2 01:06 usr
 drwxr-xr-x.  18 root root     238 Mar  2 01:07 var
 ```
 
-Dam typo troll... Try right binary name:
+Dam typo troll... Try with the right binary name instead:
 ```
-sh-4.2$ ./hello-openshift
+./hello-openshift
 serving on 8080
 serving on 8888
 ```
 
-Now when we know where is the issue we can change dockerfile and rebuild the application:
+Now that we know where is the issue, we can change the Dockerfile and rebuild the application:
 ```
 vi Dockerfile
 
@@ -146,16 +144,24 @@ oc start-build hello-openshift --from-dir . --follow
 
 And check again:
 ```
-[root@workstation-REPL hello-openshift]# oc get pods
+oc get pods
 NAME                       READY     STATUS      RESTARTS   AGE
 hello-openshift-1-build    0/1       Completed   0          18m
 hello-openshift-1-deploy   0/1       Error       0          16m
 hello-openshift-2-build    0/1       Completed   0          6m
 hello-openshift-2-t9l9r    1/1       Running     0          5m
-[root@workstation-REPL hello-openshift]# oc get route
+```
+
+Once the build is finished, check the route to our app:
+```
+oc get route
 NAME              HOST/PORT                                                     PATH      SERVICES          PORT       TERMINATION   WILDCARD
 hello-openshift   hello-openshift-hello-openshift.apps.129.146.122.240.xip.io             hello-openshift   8080-tcp   edge          None
-[root@workstation-REPL hello-openshift]# curl https://hello-openshift-hello-openshift.apps.129.146.122.240.xip.io -k
+```
+
+So now, lets see if our app is running!:
+```
+curl -k https://hello-openshift-hello-openshift.apps.129.146.122.240.xip.io
 Hello OpenShift!
 ```
 

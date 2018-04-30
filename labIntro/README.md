@@ -141,7 +141,7 @@ Lab is being launched using command `lab`. It can be used only from the bastion 
 
 Example:
 ```
-[root@workstation-repl summit]# lab -l
+lab -l
 INFO[0000] Starting Wrapper                             
 ---------------------------------------------------------------------
 Scenario 0

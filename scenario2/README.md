@@ -37,7 +37,7 @@ ssh root@master1.example.com
 Execute the following command to check the `etcd` cluster's health status:
 
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
  endpoint status -w table"
@@ -62,7 +62,7 @@ This table shows the current status of the etcd cluster, including which member 
 For a more generic health check, run the following command:
 
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
  endpoint health -w table"
@@ -170,9 +170,11 @@ ssh master1.example.com
 Force new cluster to use a single `etcd` node:
 
 ```
-[root@master1]# sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
-[root@master1]# systemctl daemon-reload
-[root@master1]# systemctl restart etcd_container
+sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
+
+systemctl daemon-reload
+
+systemctl restart etcd_container
 
 # Check logs of the etcd container
 journalctl -fu etcd_container
@@ -199,18 +201,19 @@ ssh master1.example.com
 
 Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
-[root@master1]# sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
+sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
 ```
 
 At this point etcd still runs with old systemd. Reload the daemon and restart the `etcd_container` service:
 ```
-[root@master1]# systemctl daemon-reload
-[root@master1]# systemctl restart etcd_container
+systemctl daemon-reload
+
+systemctl restart etcd_container
 ```
 
 Check etcd 1 member list:
 ```
-[root@master1]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
 --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
 --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
 member list"
@@ -220,7 +223,7 @@ b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https
 
 Add member 2:
 ```
-[root@master1]#  docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
 --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
 --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
 member add master2.example.com --peer-urls="https://192.168.0.12:2380""
@@ -244,7 +247,8 @@ ssh master2.example.com
 
 Update etcd configuration:
 ```
-[root@master2 ~]# vi /etc/etcd/etcd.conf
+vi /etc/etcd/etcd.conf
+
 ETCD_NAME=master2.example.com
 ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master1.example.com=https://192.168.0.11:2380
 ETCD_INITIAL_CLUSTER_STATE=existing
@@ -252,7 +256,7 @@ ETCD_INITIAL_CLUSTER_STATE=existing
 
 Remove old member data:
 ```
-[root@master2 ~]# rm -rf /var/lib/etcd/member
+rm -rf /var/lib/etcd/member
 ```
 
 Start etcd container service:
@@ -269,22 +273,20 @@ Check logs `journalctl -fu etcd_container`
 
 Member list on master1 should show you now 2 running members:
 ```
-[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
 --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
 --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"\
 member list"
-
 
 4f1716f1da0e8dd9, started, master2.example.com, https://192.168.0.12:2380, https://192.168.0.12:2379
 b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
 
-
 Repeat the same steps for master3:
 
 On master1:
 ```
-[root@master1 ~]# docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
 --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt  \
 --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
 member add master3.example.com --peer-urls="https://192.168.0.13:2380""
@@ -303,7 +305,8 @@ ssh master3.example.com
 
 Update etcd configuration:
 ```
-[root@master3 ~]# vi /etc/etcd/etcd.conf
+vi /etc/etcd/etcd.conf
+
 ETCD_NAME=master3.example.com
 ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master3.example.com=https://192.168.0.13:2380,master1.example.com=https://192.168.0.11:2380
 ETCD_INITIAL_CLUSTER_STATE=existing
@@ -311,18 +314,22 @@ ETCD_INITIAL_CLUSTER_STATE=existing
 
 Remove old member data:
 ```
-[root@master3 ~]# rm -rf /var/lib/etcd/member
+rm -rf /var/lib/etcd/member
 ```
-start the etcd container service:
+
+Start the etcd container service:
+
 ```
-[root@master3 ~]# systemctl start etcd_container
+systemctl start etcd_container
 ```
 
 Now check the etcd cluster health with the same command from the beginning of the scenario.
 
-This scenario has demonstrated failure and recovery steps for the etcd cluster, where old nodes were available for use. Ansible playbooks are available to do all these steps for you. If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
+This scenario has demonstrated failure and recovery steps for an etcd cluster, where old nodes were available to use. Ansible playbooks are available to do all these steps for you.
 
-Finally - all 3 `etcd` cluster hosts should now be back online in Grafana and no alerts in prometheus. Notify the instructor if this is not the case. :)
+If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
+
+Finally, all 3 `etcd` cluster hosts should now be back online in Grafana and no alerts in prometheus. Notify the instructor if this is not the case. :)
 
 ### Appendix
 

@@ -24,8 +24,8 @@ Now try kicking off a build within the OpenShift Container Platform cluster (the
 ... or inspect any of the builds in the `ci-cd` project/namespace:
 
 ```
-[root@workstation]# oc project ci-cd
-[root@workstation]# oc logs -f summit-labs-fe-5-build
+oc project ci-cd
+oc logs -f summit-labs-fe-5-build
 ...
 Pushing image docker-registry.default.svc:5000/ci-cd/summit-labs-fe:uat-summit-labs-fe-bake.2
 Registry server Address:
@@ -116,18 +116,19 @@ time="2018-03-21T11:51:36.305582362Z" level=error msg="response completed with e
 
 To validate this even further, access the registry pod with `rsh` and check the mountpoint size:
 ```
-[root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
-sh-4.2$ du -sh /registry    
+oc rsh docker-registry-2-5gktk
+
+du -sh /registry    
     10.0G    /registry
 
 # try writing something to it
-sh-4.2$ touch /registry/test
+touch /registry/test
 touch: cannot touch '/registry/test': No space left on device
 ```
 
 Next, check what the container registry is using as its backend storage:
 ```
-[root@master1 ~]# oc get pv,pvc
+oc get pv,pvc
 NAME                                          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS    CLAIM                                       STORAGECLASS        REASON    AGE
 pv/pvc-7f74133e-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus                glusterfs-storage             9h
 pv/pvc-8086f0f7-34de-11e8-9019-2cc26036f58d   10Gi       RWO            Delete           Bound     openshift-metrics/prometheus-alertmanager   glusterfs-storage             9h
@@ -140,7 +141,9 @@ pvc/registry-claim   Bound     registry-volume   10Gi       RWX                 
 ```
 
 The output above shows that the `registry-claim` is 10Gi in size, and is provided from a manually provisioned volume.
-Staring with OpenShift Container Platform 3.9, a new option is available for the storageClass - `allowVolumeExpansion: true` - which allows dynamic expansion of the PV's.
+
+Starting with OpenShift Container Platform 3.9, a new option is available for the storageClass - `allowVolumeExpansion: true` - which allows dynamic expansion of the PV's.
+
 The users can request larger volume for their PersistentVolumeClaim by simply editing the claim and requesting a larger size. This in turn will trigger expansion of the volume that is backing the underlying PersistentVolume.
 
 For this lab scenario, the 10Gi PV will be manually expanded:
@@ -161,16 +164,18 @@ oc get pods
 # rsh to heketi pod
 oc rsh heketi-storage-1-r98zq
 
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list
+heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list
 ```
 
 Get the ID of the volume and check its info:
 ```
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list | grep  glusterfs-registry-volume
+heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume list | grep  glusterfs-registry-volume
+
 Id:cf7794a72e28b16860d367d19fe192a0    Cluster:8d28e8f000e2835582cc21e45bff7cae    Name:glusterfs-registry-volume
 
 
-sh-4.2# heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume info cf7794a72e28b16860d367d19fe192a0   
+heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume info cf7794a72e28b16860d367d19fe192a0   
+
 Name: glusterfs-registry-volume
 Size: 10
 Volume Id: cf7794a72e28b16860d367d19fe192a0
@@ -191,40 +196,51 @@ heketi-cli --user admin --secret $HEKETI_ADMIN_KEY volume expand --volume=cf7794
 
 Next see if this helped with the recovery of the registry:
 ```
-root@workstation-REPL ~]# oc project default
+oc project default
 Now using project "default" on server "https://console.example.com".
-[root@workstation-REPL ~]# oc get pods
-[root@workstation-REPL ~]# oc rsh docker-registry-2-5gktk
-sh-4.2$ touch /registry/test
+
+oc get pods
+
+oc rsh docker-registry-2-5gktk
+
+touch /registry/test
 touch: cannot touch '/registry/test': No space left on device
 ```
 
-Surprise :) This would be one of those cases were you would need to raise a support ticket with Redhat support. For our lab we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
+Surprise :). This would be one of those cases were you would need to raise a support ticket with Red Hat support. For our lab we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
+
 This should be fixed with next heketi release. To work around this issue, (information is in bugzilla) the underlying gluster cluster needs to be re-balanced.
 
 Use `rsh` to access any of the gluster pods and perform the re-balancing :
 ```
 oc project glusterfs
+
 oc get pods
+
 oc rsh glusterfs-storage-dt2s5
 
-sh-4.2# gluster volume list           
+gluster volume list           
+
 glusterfs-registry-volume
 heketidbstorage
 vol_106d888f55fdef210ba3885140f99d18
 vol_377905d2401904491c3dcf150f14ca82
 vol_4a6169a6be60c4f25431a0561d3b53f6
 vol_f02d15415e491acef927da2f7f0c4bce
-sh-4.2# gluster volume rebalance glusterfs-registry-volume start
+
+gluster volume rebalance glusterfs-registry-volume start
 ```
 
 
 Next, repeat the manual test:
 ```
 oc project default
+
 oc get pods
+
 oc rsh docker-registry-2-5gktk
-sh-4.2$ touch /registry/test
+
+touch /registry/test
 ```
 
 The container registry behaves the same as any other application consuming storage, but its impact may be bigger as it is a vital part of the OpenShift Container Platform cluster and its operation. Depending on the storage provider, actions to extend, debug and manage the backing volumes will be different. In our case we used `heketi` to manage our Gluster (CNS) cluster.

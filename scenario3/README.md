@@ -40,7 +40,8 @@ Check dashboards for alerts and visualizations:
 
 Execute from the bastion:
 ```
-[root@workstation-repl summit]# ansible etcd -m shell -a "date"
+ansible etcd -m shell -a "date"
+
 master2.example.com | SUCCESS | rc=0 >>
 Mon Mar 26 07:39:17 EDT 2018
 

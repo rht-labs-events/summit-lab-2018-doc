@@ -80,7 +80,7 @@ Useful commands:
 ```
 oc label nodes -l label=value - label nodes
 oc get nodes --show-labels - check labels
-[root@master1 ~]# cat /etc/origin/master/scheduler.json - check scheduler
+cat /etc/origin/master/scheduler.json - check scheduler
 oc edit namespace scheduler - modify namespace
 ```
 
@@ -106,7 +106,7 @@ oc get project scheduler -o yaml
 
 So following this logic, it should spread all the pods all over the nodes. But it does not. Other place where you might look into this is other node utilisation.
 ```
-[root@workstation-REPL summit-labs-ansible-wrapper]# oc describe node node1.example.com
+oc describe node node1.example.com
 ...
 Capacity:
  cpu:           8
@@ -225,7 +225,7 @@ openshift.io/node-selector: zone=az1
 If default node selector is not defined on the project level, it being used from openshift master config:
 ```
 ssh master1.example.com
-[root@master1 ~]# cat /etc/origin/master/master-config.yaml | grep defaultNodeSelector
+cat /etc/origin/master/master-config.yaml | grep defaultNodeSelector
   defaultNodeSelector: region=workers
 ```
 

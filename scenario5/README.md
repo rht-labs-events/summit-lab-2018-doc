@@ -35,7 +35,7 @@ NAME               HOST/PORT                                             PATH   
 skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io             skydive-analyzer   api                     None
 ```
 
-:heavy_check_mark: Skydive is exposed in port 80, so use http to access the route instead of https.**
+:heavy_check_mark: Skydive is exposed in port 80, so use http to access the route instead of https.
 
 
 ![alt text](img/img2-skydive-general.png)
@@ -171,12 +171,18 @@ Apr 19 12:33:49 node1.example.com openvswitch[2124]: Starting ovsdb-server [  OK
 Apr 19 12:33:50 node1.example.com openvswitch[2124]: Configuring Open vSwitch system IDs [  OK  ]
 Apr 19 12:33:50 node1.example.com openvswitch[2124]: Inserting openvswitch module [  OK  ]
 Apr 19 12:33:51 node1.example.com openvswitch[2124]: Starting ovs-vswitchd [  OK  ]
-Apr 19 12:33:52 node1.example.com openvswitch[2124]: Enabling remote OVSDB managers [  OK  ]
+Apr 19 12:33:52 node1.example.com openvswitch[2124]: Enabling remote OVSDB managers [  OK ]
 ```
 
 Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
 
-:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.**
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.
+
+:exclamation: There is a known [issue](https://github.com/openshift/origin/issues/19466) related to SkyDive where Pod interfaces are not cleaned. So even if you have solved the scenario by yourself, please solve it using the lab cli to remove SkyDive.
+
+```
+lab -s 5 -a solve
+```
 
 ### OVS Deep dive
 
