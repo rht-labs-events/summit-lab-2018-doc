@@ -2,28 +2,29 @@
 
 This demonstration showcases the following:
 
-* Recovering from etcd failures in a real operational cluster.
-* Debug and recovery from failed build due infrastructure and build problems.
 * Debug and recover from OpenShift scheduler issues.
+* Troubleshoot Application Storage issues.
+* Recovering from etcd quorum failures in an operational OpenShift Container Platform cluster.
+* Identify and recover from etcd performance issues.
 * Debug and recover from binary build issues and deployments.
-* Debug and recover from an OpenShift node lost.
-* Debug and recover a node from DNS problems.
+* Debug and recover from an OpenShift node lost due to SDN issues.
+* Debug and recover an OpenShift node from DNS problems.
 
 #### Goal
 
-* To learn how we can effectively monitor our OpenShift cluster and proactively solve issues.
-* Learn how to debug and operate an OpenShift cluster
+* To learn how we can effectively monitor our OpenShift Container Platform (OCP) cluster and proactively solve issues.
+* Learn how to debug and operate an OpenShift  Container Platform (OCP) cluster
 
 #### Prerequisites
 
-* Understanding of OpenShift concepts and working principals.
+* Understanding of OpenShift Container Platform (OCP) concepts and working principals.
 
 #### Versions of products used
 
 Product |Version
 --------- | ---------
 `OpenShift Container Platform` |`3.9`
-`Container Native Storate` |`3.3`
+`Container Native Storage` |`3.3`
 `Grafana` |
 `Prometheus` |
 `Alertmanager` |
@@ -47,7 +48,7 @@ Hostname              |Internal IP    |Description
 `node3.example.com`  |`192.168.0.33` | Node 3
 
 
-:green_book: bulb HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
+:green_book: HAProxy is running on the *workstation* machine.  This provides the option to do port forwarding for access to the web console and other services running on the OpenShift Container Platform (this is *one way* to work around DNS and routing limitations in the underlying Ravello environment). Ports included are 80, 8443 and 8080-8085.
 
 #### Links to tools docs used during the Lab
 
@@ -61,15 +62,15 @@ Hostname              |Internal IP    |Description
 
 ![alt text](img/diagram.png)
 
-* You can ssh from bastion to any node from `root` to `root`.
+* You can ssh as `root` from the bastion to any of the OpenShift Container Platform cluster nodes.
 
-* When you ssh to lab using `lab-user`, you can `sudo su -` to get `root` access.
+* When using ssh to access the lab with the user `lab-user`, it is possible to `sudo -i` to get `root` access.
 
-* Your environment contains few application, which will help you to know your cluster state.
+* The environment contains a few useful applications which will help you in knowing your cluster state.
 
 #### Prometheus
 
-Prometheus will scrape endpoints all over the environment and raises the alerts based on rules. Those alerts are passed to Alertmanager for next distribution.
+Prometheus will obtain information from endpoints across the environment, and raises alerts based on a set of rules. These alerts are passed to Alertmanager for distribution to dashboards, etc.
 
 ![alt text](img/prometheus.png)
 
@@ -82,21 +83,21 @@ Alertmanager is used to aggregate alerts and dispatch them to the required deliv
 
 #### Grafana
 
-Grafana is used to graphically represent cluster data. It interacts directly with Prometheus as datasource.
+Grafana is used to graphically represent cluster data. It interacts directly with Prometheus as its data source.
 
  ![alt text](img/grafana.png)
 
-Grafana is pre-built with dashboards to assist you during the course of this lab. Although not every of them is needed to finish lab scenarios, it is highly recommeded that you have a look at all of them.
+Grafana is pre-built with useful dashboards to assist you during the course of this lab. Although not every one of them is needed to finish the lab scenarios, it is highly recommended that you have a closer look at all of them.
 
-The first time you log into Grafana, in the top-left corner you should see a "Home" tap.
+The first time you logon to Grafana, you will see a "Home" tab in the top-left corner.
 
 ![alt text](img/grafana-home.png)
 
-If you click on it, a drop-down list with every available dashboard should appear.
+If you click on the "Home" tab, a drop-down list with every available dashboard should appear.
 
 ![alt text](img/grafana-dashboards.png)
 
-Here are the 3 Grafana dashboards strictly neccesary to finish  the whole lab.
+Below are the 3 Grafana dashboards strictly necessary to finish this lab.
 
 **Labs Generic**
 
@@ -106,7 +107,7 @@ It contains generic information about the cluster such us pod count per node, DN
 
 **ETCD**
 
-Etcd related information.
+`etcd` cluster related information.
 
 ![alt text](img/grafana-etcd.png)
 
@@ -119,7 +120,7 @@ Builds related information.
 
 ### Getting Started
 
-From a web browser, open URL below in its own window or tab, using `admin` for the username and `r3dh4t1!` for the password:
+Open a new web browser window (or tab),then enter the URL below. Use `admin` for the username and `r3dh4t1!` for the password:
 
 * *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 
@@ -128,39 +129,39 @@ From a web browser, open URL below in its own window or tab, using `admin` for t
 
 ### Review the Environment
 
-Once the OpenShift environment is up and running, log in to the *OpenShift Enterprise Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`.
+Once the OpenShift environment is up and running, log in to the *OpenShift Container Platform Web Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`.
 
 :heavy_check_mark: TIP: In order to log into the console, use the credentials provided in the lab slides.
 
-:clock10: If nothing is running on your cluster, give it some time. There is a background service running, which is populating your cluster.
+:clock10: If nothing is running in the OpenShift Container Platform cluster yet, give it some more time. There is a background service running, which is populating the cluster with content.
 
 ### Lab Launcher
 
-Lab is being launched using command `lab`. It can be used only from the bastion host.
+The lab is being launched using the command `lab`. This command can only be used from the bastion host.
 
 Example:
 ```
-lab -l
+> lab -l
 INFO[0000] Starting Wrapper                             
 ---------------------------------------------------------------------
 Scenario 0
 Description: Observe ETCD state and recover when quorum is lost. Simulate 2 DC deployment.
 Actions: [init, solve, break1, break2]
 To init this scenario execute:
-  cli -s 0 -a init
+  > lab -s 0 -a init
 
 ---------------------------------------------------------------------
 Scenario 1
 Description: Observe ETCD - Bonus task
 Actions: [init, solve]
 To init this scenario execute:
-  cli -s 1 -a init
+  > lab -s 1 -a init
 ...
 ```
 
 ### CLI access
 
-Once the environment is bootstrapped you should see all the welcome screen url replaces with the values:
+Once the environment has been successfully bootstrapped, you should see all the welcome screen urls replaced with valid values:
 ```
 Information about Your current environment:
 Your GUID: repl
@@ -182,13 +183,13 @@ Pre-Deployed apps:
     https://alertmanager.apps.example.com
 ```
 
-You can get this windows again by executing `lab -h`
+This information can be recalled at any point by executing: `lab -h`
 
-You have pre-deployed applications available for you, go and inspect them.
+Initially, there is a set of pre-deployed applications available for your use. Please take a moment to become familiar with what is already there.
 
-Core tools we will be using in this labs are supported by Red Hat. Few other non-core ones are with community support.
+Core tools used in this labs are supported by Red Hat. In addition, there are a few non-core ones which are supported by OpenSource communities.
 
-Lab consist of number scenarios. They are independent, but we don't recommend to jump from one scenario to other without finishing previous one.
+Today's Lab contains a number scenarios. They are all independent, but it is not recommended to jump from one scenario to the next without finishing the previous ones first.
 
 ### Info about the scenarios
 
@@ -198,7 +199,5 @@ Every scenario has the following parts:
 * `Tasks`: Tasks to be performed during the scenario.
 * `Solution`: Explanation of the actions that need to be taken to solve the scenario.
 * `Appendix`: Materials for further reading.
-
-
 
 ### [**-- HOME --**](https://rht-labs-events.github.io/summit-lab-2018-doc/)
