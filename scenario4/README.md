@@ -6,70 +6,69 @@ Length: 10-20 min
 Dashboard: Builds Overview
 ```
 
-Into what we will do
+### Intro
 
-In this lab when debugging application you should use command `oc debug`.
+In this scenario, we will be debugging an application with the command `oc debug`.
 
-Type `oc debug -h` for information how to use it.
+Type `oc debug -h` for more information on how to use it.
 
-To start this scenario execute command on the bastion:
+To start this scenario execute the following command on the bastion:
 ```
-lab -s 4 -a init
-```
-
-You should have new project `hello-openshift` in your cluster. At the moment it's an empty project. But lets populate it.
-
-You now have a folder `hello-openshift` in the root folder. It's a very simple `goLang` application to demonstrate binary build and simple application debugging methods.
-
-Lets build an app:
-```
-cd ~/hello-openshift
-oc project hello-openshift
+> lab -s 4 -a init
 ```
 
-Create new binary build:
+This should create a new project, `hello-openshift`, in the OpenShift Container Platform cluster. At first it is an empty project, but the next steps will populate it with content.
+
+First, navigate to the directory called `hello-openshift` in root's home directory. It is a very simple `goLang` application to demonstrate binary build and simple application debugging methods.
+
 ```
-oc new-build --strategy docker --binary --docker-image centos:centos7 --name hello-openshift
+> cd ~/hello-openshift
+> oc project hello-openshift
 ```
 
-Flag `--binary` tells buildconfig that we will be using local file system as source for our build. Now lets star the build and build the application image:
+Next, create the application build as a docker build and of type `binary`:
 ```
-oc start-build hello-openshift --from-dir . --follow
+> oc new-build --strategy docker --binary --docker-image centos:centos7 --name hello-openshift
 ```
 
-We should see app build succ:
+Next, start the build which will crate the application image. The flag `--from-dir` tells the BuildConfig that we will be using the local file system as source for the build:
 ```
-[root@workstation-REPL hello-openshift]# oc get is
+> oc start-build hello-openshift --from-dir . --follow
+```
+
+Inspect the ImageStream to see that the application image build succeeded:
+```
+> oc get is
 NAME              DOCKER REPO                                                        TAGS      UPDATED
 centos            docker-registry.default.svc:5000/hello-openshift/centos            centos7   3 minutes ago
 hello-openshift   docker-registry.default.svc:5000/hello-openshift/hello-openshift   latest    16 seconds ago
 ```
 
-Now lets try to deploy an application:
+Next, deploy the application from the ImageStream.
 ```
-oc new-app hello-openshift
-oc expose svc/hello-openshift
+> oc new-app hello-openshift
+> oc expose svc/hello-openshift
 ```
 
-And check our application.
+... then check the status of the application:
 ```
-oc get pods
+> oc get pods
 NAME                       READY     STATUS              RESTARTS   AGE
 hello-openshift-1-6l22c    0/1       RunContainerError   3          47s
 hello-openshift-1-build    0/1       Completed           0          3m
 hello-openshift-1-deploy   1/1       Running             0          53s
 ```
 
-Now use `oc debug` to check why the application is not starting, try starting it in debug mode. Later change local files and rebuild application again (from `oc start-build`) and confirm that app is running.
+From here, use `oc debug` to check why the application is not starting by starting it in debug mode. As part of fixing it, change the local files and rebuild the application again (from `oc start-build`) and confirm that application is running.
 
 ### Solution
 
-Lets start our failing application in debug mode and check whats wrong:
+Start the failing application in debug mode and check what is wrong:
 ```
-oc get pods
+> oc get pods
 
-#example output:
-oc get pods
+# example output:
+> oc get pods
 NAME                       READY     STATUS             RESTARTS   AGE
 hello-openshift-1-6l22c    0/1       CrashLoopBackOff   4          3m
 hello-openshift-1-build    0/1       Completed          0          6m
@@ -77,21 +76,20 @@ hello-openshift-1-deploy   1/1       Running            0          3m
 
 
 # start app in debug mode:
-oc debug hello-openshift-1-6l22c
+> oc debug hello-openshift-1-6l22c
 Debugging with pod/hello-openshift-1-6l22c-debug, original command: /helo-openshift
 Waiting for pod to start ...
 Pod IP: 10.217.0.55
 If you don't see a command prompt, try pressing enter.
 ```
 
-From the output debug mode suggest us that containers entry point is `/helo-openshift`.
-And debug mode gives us interactive shell to the same container. Lets try execute entrypoint command and see:
+The output in debug mode suggest that the container's entry point is `/helo-openshift`. To further investigate, running in debug mode provides an interactive shell to the container. Try executing the entrypoint command to see what happens:
 ```
-/helo-openshift
+> /helo-openshift
 sh: /helo-openshift: No such file or direct
 ```
 
-So lets find what is the right command:
+As this command does not exist, find the correct one and change the entrypoint:
 ```
 sh-4.2$ ls -la
 total 6024
@@ -120,18 +118,18 @@ drwxr-xr-x.  13 root root     155 Mar  2 01:06 usr
 drwxr-xr-x.  18 root root     238 Mar  2 01:07 var
 ```
 
-Dam typo troll... Try with the right binary name instead:
+First, try running again with the correct binary name - `hello-openshift`:
 ```
 ./hello-openshift
 serving on 8080
 serving on 8888
 ```
 
-Now that we know where is the issue, we can change the Dockerfile and rebuild the application:
+Now that we know where the issue is, we can change the entrypoint in the Dockerfile and rebuild the application:
 ```
-vi Dockerfile
-
-#change
+> vi Dockerfile
+  :
+# change
 ENTRYPOINT ["/helo-openshift"]
  to
 ENTRYPOINT ["/hello-openshift"]
@@ -139,12 +137,12 @@ ENTRYPOINT ["/hello-openshift"]
 
 And rebuild the application:
 ```
-oc start-build hello-openshift --from-dir . --follow
+> oc start-build hello-openshift --from-dir . --follow
 ```
 
 And check again:
 ```
-oc get pods
+> oc get pods
 NAME                       READY     STATUS      RESTARTS   AGE
 hello-openshift-1-build    0/1       Completed   0          18m
 hello-openshift-1-deploy   0/1       Error       0          16m
@@ -152,24 +150,24 @@ hello-openshift-2-build    0/1       Completed   0          6m
 hello-openshift-2-t9l9r    1/1       Running     0          5m
 ```
 
-Once the build is finished, check the route to our app:
+Once the build has finished, check the route to the application:
 ```
-oc get route
+> oc get route
 NAME              HOST/PORT                                                     PATH      SERVICES          PORT       TERMINATION   WILDCARD
 hello-openshift   hello-openshift-hello-openshift.apps.129.146.122.240.xip.io             hello-openshift   8080-tcp   edge          None
 ```
 
-So now, lets see if our app is running!:
+Check if the application is responding to requests:
 ```
-curl -k https://hello-openshift-hello-openshift.apps.129.146.122.240.xip.io
+> curl -k https://hello-openshift-hello-openshift.apps.129.146.122.240.xip.io
 Hello OpenShift!
 ```
 
 #### How to monitor these particular cases?
 
-Each application should expose individual metrics for its own performance.  Prometheus client libraries when running on Linux will usually expose a metric by the name of process_start_time_seconds which is the Unix time at which the process started. Every time it changes for a given target means that the process has restarted. Conveniently PromQL has a changes() function which can count the number of changes in a time series over time.
+Each application should expose individual metrics for its own performance.  Prometheus client libraries running on Linux will usually expose a metric by the name of `process_start_time_seconds` which is the Unix time at which the process started. Every time it changes for a given target means that the process has restarted. Conveniently PromQL has a changes() function which can count the number of changes in a time series over time.
 
-So we can craft an alert, based on how often this value changes. Implying - restart happens.
+Based on this information, an alert can be created - i.e.: triggered by how often this value changes - implying that restarts happens.
 
 ```
 groups:
@@ -184,7 +182,7 @@ groups:
 
 To resolve the scenario:
 ```
-lab -s 4 -a solve
+> lab -s 4 -a solve
 ```
 
 ### Appendix

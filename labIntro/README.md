@@ -120,7 +120,7 @@ Builds related information.
 
 ### Getting Started
 
-Open a new web browser window (or tab),then enter the URL below. Use `admin` for the username and `r3dh4t1!` for the password:
+Open a new web browser window (or tab), then enter the URL below. Use `admin` for the username and `r3dh4t1!` for the password:
 
 * *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 

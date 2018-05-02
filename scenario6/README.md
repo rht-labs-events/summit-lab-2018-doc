@@ -6,20 +6,22 @@ Lenght: 15 min
 Dashboards: Labs Generic
 ```
 
-On this lab we will simulate a common problem usually found in customers. DNS problems ;).
-Apps are very sensitive to DNS problems, which are hard to debug.
+### Intro
 
-If you want to know how DNS configuration works in OpenShift, have a look at this [article](https://www.redhat.com/en/blog/red-hat-openshift-container-platform-dns-deep-dive-dns-changes-red-hat-openshift-container-platform-36).
+In this lab scenario we will simulate a common problem usually found in customer deployments - DNS problems ;).
+Applications are very sensitive to DNS resolution issues, which can be tough to troubleshoot.
 
-Here it is the DNS architecture diagram of an OpenShift node:
+If you want to know how DNS configuration works in the OpenShift Container Platform, take a closer look at the following  [article](https://www.redhat.com/en/blog/red-hat-openshift-container-platform-dns-deep-dive-dns-changes-red-hat-openshift-container-platform-36).
+
+The following is the DNS architecture diagram for an OpenShift Container Platform node:
 
 ![alt text](img/img0-dns-diagram.png)
 
-A tricky thing about DNS problems, as you may already know, is that your cluster will look fine while your Apps might be impacted.
+A tricky thing about DNS problems, as you may already know, is that your OpenShift Container Platform cluster may operate just fine, while the  applications might not.
 
 To start the scenario:
 ```
-lab -s 6 -a init
+> lab -s 6 -a init
 ```
 
 #### Lab Goal:
@@ -28,64 +30,63 @@ lab -s 6 -a init
 
 * Task 2: Identify which component or components are impacted. Fix it ;)
 
-* Hint 1: dnsmasq is a key component of the OpenShift DNS architecture.
+* *Hint 1*: dnsmasq is a key component of the OpenShift Container Platform DNS architecture.
 
 
 If you want to skip this task, execute on the <b>bastion</b>:
 ```
-lab -s 6 -a solve
+> lab -s 6 -a solve
 ```
 
 Useful commands for this lab:
 
 ```
-systemctl status/stop <service_name>
-journalctl -fu <service_name> - follow logs of the service
-oc get nodes
-dig
-ss -ntlp
+> systemctl status/stop <service_name>
+> journalctl -fu <service_name> - follow logs of the service
+> oc get nodes
+> dig
+> ss -ntlp
 ```
 
 ### Solution
 
 #### Task 1 solution: Identify which node is impacted, and why.
 
-At first sight, all OpenShift nodes are fine. If you run `oc get nodes`,
-you should see nothing wrong.
+At first sight, all of the OpenShift Container Platform nodes are fine. Running the command `oc get nodes` yields nothing wrong.
 
-Let's use our monitoring tools, go check Grafana, Prometheus and Alertmanager to get more info. Open Grafana dashboard `Labs Generic` and check the `DNS errors per node` panel.
+Checking the monitoring tools, Grafana, Prometheus and Alertmanager, will potentially show more info. Open Grafana dashboard `Labs Generic` and check the `DNS errors per node` panel.
 
-So, you should see something like this in the `Labs Generic` Grafana dashboard (DNS errors per node graph):
+Something like the following in the `Labs Generic` Grafana dashboard (DNS errors per node graph) should be displayed:
 
 ![alt text](img/dns.png)
 
-This Grafana panel gives you enough information to know which node is having DNS problems, but still, go check Prometheus and Alertmanager too.
+This Grafana panel gives you enough information to know which node is having DNS problems, but it is also good to check Prometheus and Alertmanager as well.
 
-You should have alerts in both:
+Both should show alerts:
 
 ![alt text](img/img1-alertmanager-dns-alert.png)
 
 ![alt text](img/img3-prom-dns-alert.png)
 
-Now that we now that node 1 is impacted, we have to discover what is not working properly.
+Now that it is clear that node 1 is impacted, the next step is to identify what is broken.
 
 #### Task 2 solution: Identify which component or components are impacted. Fix it.
 
-Let's ssh into the node, and check the DNS resolution keeping in mind to the diagram above. So, lets try to resolve Kubernetes api service `kubernetes.default.svc.cluster.local` and see what we get.
+Use ssh to access the node, and check the DNS resolution (keeping in mind to the diagram above). First, try to resolve the Kubernetes api service `kubernetes.default.svc.cluster.local` and examine the result.
 
-First we ask the SkyDNS embedded in the OpenShift node service (127.0.0.1:53) and then the dnsmasq (<node_ip>:53).
+The DNS resolution in this case happens by first consulting the embedded SkyDNS in the OpenShift node service (127.0.0.1:53) and next the dnsmasq service (<node_ip>:53).
 
 ```
-ssh node1.example.com
+> ssh node1.example.com
 
-dig @127.0.0.1 kubernetes.default.svc.cluster.local +short
+> dig @127.0.0.1 kubernetes.default.svc.cluster.local +short
 172.30.0.1
 ```
 
-So, SkyDNS is resolving properly, lets see dnsmasq. Get node ip:
+The result shows that SkyDNS is resolving properly. Next, check dnsmasq. Get node ip:
 
 ```
-ip a s eth0
+> ip a s eth0
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
     link/ether 2c:c2:60:0a:fc:82 brd ff:ff:ff:ff:ff:ff
     inet 192.168.0.31/16 brd 192.168.255.255 scope global dynamic eth0
@@ -95,17 +96,17 @@ ip a s eth0
 
 ```
 
-Ask dnsmasq:
+Check dnsmasq:
 
 ```
-dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
-....
+> dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
+.... (nothing)
 ```
 
-Dnsmasq is not even responding, so check the status of the service.
+`dnsmasq` is not even responding, so check the status of the service.
 
 ```
-systemctl status dnsmasq
+> systemctl status dnsmasq
 ● dnsmasq.service - DNS caching server.
    Loaded: loaded (/usr/lib/systemd/system/dnsmasq.service; enabled; vendor preset: disabled)
    Active: inactive (dead) since Wed 2018-04-18 04:15:54 EDT; 4h 41min ago
@@ -124,18 +125,18 @@ Apr 18 04:15:54 node1.example.com dnsmasq[1056]: exiting on receipt of SIGTERM
 Apr 18 04:15:54 node1.example.com systemd[1]: Stopped DNS caching server..
 ```
 
-Dnsmasq was stopped, start it and check the DNS resolution again.
+The `dnsmasq` service was stopped. Start it and check the DNS resolution again.
 
 ```
-systemctl start dnsmasq
+> systemctl start dnsmasq
 
-dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
+> dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
 172.30.0.1
 ```
 
-Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
+Next, check Grafana, Prometheus and Alertmanager again - at this point there should be no more alerts.
 
-:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 minutes for everything to clear.
 
 ### Appendix
 

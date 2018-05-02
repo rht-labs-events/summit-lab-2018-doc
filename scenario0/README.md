@@ -6,6 +6,8 @@ Length: 10-20 min
 Dashboard: Labs Generic
 ```
 
+### Intro
+
 In this scenario we will take a closer look at the OpenShift Container Platform scheduler, how limits works, and how it can impact your platforms behaviour and performance. At the end of this scenario, you should have a better understanding of why you should care about the OpenShift Container Platform scheduler.
 
 The Labs Generic dashboard should look something like this:

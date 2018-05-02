@@ -6,6 +6,8 @@ Length: 10-15 min
 Dashboard: Labs Generic
 ```
 
+### Intro
+
 In this lab we will see how external factors to the `etcd` cluster can impact the OpenShift Container Platforms behaviour and how we can recover from it.
 
 To start scenario:
@@ -21,9 +23,9 @@ No direct impact to the OpenShift Container Platform (OCP) cluster may be immedi
 Useful commands for this lab:
 
 ```
-journalctl -fu <service_name>                        # follow logs of the service
-chronyc -a 'burst 4/4' && chronyc -a makestep        # force time sync using chronyc
-ansible all/masters/infras/ -m shell -a "hostname"   # execute adhoc command on subset of servers
+> journalctl -fu <service_name>                        # follow logs of the service
+> chronyc -a 'burst 4/4' && chronyc -a makestep        # force time sync using chronyc
+> ansible all/masters/infras/ -m shell -a "hostname"   # execute adhoc command on subset of servers
 ```
 
 ### Solution
@@ -40,7 +42,7 @@ Check dashboards for alerts and visualizations:
 
 Execute from the bastion:
 ```
-ansible etcd -m shell -a "date"
+> ansible etcd -m shell -a "date"
 
 master2.example.com | SUCCESS | rc=0 >>
 Mon Mar 26 07:39:17 EDT 2018
@@ -62,17 +64,17 @@ Solution is straight forward:
 
 Check if time sync / ntp service (chrony) is running:
 ```
-ansible etcd -m shell -a "systemctl status chronyd"
+> ansible etcd -m shell -a "systemctl status chronyd"
 ```
 
 Start the service:
 ```
-ansible etcd -m shell -a "systemctl start chronyd"
+> ansible etcd -m shell -a "systemctl start chronyd"
 ```
 
 Force time sync:
 ```
-ansible etcd -m shell -a "chronyc -a 'burst 4/4' && chronyc -a makestep"
+> ansible etcd -m shell -a "chronyc -a 'burst 4/4' && chronyc -a makestep"
 ```
 
 The alerts should resolve, and grafana shows new state:

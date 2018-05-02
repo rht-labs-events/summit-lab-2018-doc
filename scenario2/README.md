@@ -6,6 +6,8 @@ Length: 20-30 min
 Dashboard: ETCD
 ```
 
+### Intro
+
 In this lab we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) cluster quorum can impact the OpenShift Container Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
 
 `etcd` stores the persistent OpenShift Container Platform (OCP) master state while other components watch `etcd` for changes to bring themselves into the desired state. `etcd` can be optionally configured for high availability, typically deployed with 2n+1 peer services. For further details, you can read the `What is failure tolerance?` section of [this page](https://coreos.com/etcd/docs/latest/faq.html) at your own leisure.
@@ -31,16 +33,16 @@ If you do not have dashboards and alerting tools in place, next best tool for de
 First, ssh to one of the OCP master hosts:
 
 ```
-ssh root@master1.example.com
+> ssh root@master1.example.com
 ```
 
 Execute the following command to check the `etcd` cluster's health status:
 
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
- --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
- --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
- endpoint status -w table"
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  endpoint status -w table"
 
 # Output example:
 +---------------------------+------------------+---------+---------+-----------+-----------+------------+
@@ -62,10 +64,10 @@ This table shows the current status of the etcd cluster, including which member 
 For a more generic health check, run the following command:
 
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
- --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
- --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
- endpoint health -w table"
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  endpoint health -w table"
 
 # Output Example:
 https://master2.example.com:2379 is healthy: successfully committed proposal: took = 6.889365ms
@@ -80,11 +82,11 @@ https://master1.example.com:2379 is healthy: successfully committed proposal: to
 Another useful command is to list all the keys and data in the etcd cluster. In this example we get one of the Application Templates from the OpenShift Container Platform:
 
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
---cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
---cacert=/etc/etcd/ca.crt \
---endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
-get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+  --cacert=/etc/etcd/ca.crt \
+  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  get /openshift.io/templates/openshift/datagrid65-postgresql --prefix"
 ```
 
 
@@ -100,7 +102,7 @@ Next, we will take a closer look at what happens when one etcd node is lost.
 Execute from the *bastion* host:
 
 ```
-lab -s 2 -a break1
+> lab -s 2 -a break1
 ```
 
 After a few seconds grafana should report that only 2 etcd are alive. Make sure to check prometheus and alertmanager for any alerts, which should indicates that one of the `etcd` cluster members is lost.
@@ -118,7 +120,7 @@ The OCP cluster still performs fine, as quorum is still maintained. However, nex
 Execute from the *bastion* host:
 
 ```
-lab -s 2 -a break2
+> lab -s 2 -a break2
 ```
 
 At this point, all the dashboards should indicate major failures and clusters in a bad state.
@@ -141,14 +143,14 @@ This will involve adding new members to the master1 cluster by re-configuring ma
 
 If you want to skip these task, execute from the *bastion* host:
 ```
- lab -s 2 -a solve
+> lab -s 2 -a solve
 ```
 
 Useful commands for this lab:
 
 ```
-journalctl -fu <service_name>  << follow logs of the service
-ansible [all|masters|infras] -m shell -a "hostname"  << execute adhoc command on subset of servers
+> journalctl -fu <service_name>  << follow logs of the service
+> ansible [all|masters|infras] -m shell -a "hostname"  << execute adhoc command on subset of servers
 ```
 
 ### Solution
@@ -164,20 +166,20 @@ Switch master1/etcd1 to single master mode:
 ssh to master1:
 
 ```
-ssh master1.example.com
+> ssh master1.example.com
 ```
 
 Force new cluster to use a single `etcd` node:
 
 ```
-sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
+> sed -i '/ExecStart=/s/$/  --force-new-cluster/' /etc/systemd/system/etcd_container.service
 
-systemctl daemon-reload
+> systemctl daemon-reload
 
-systemctl restart etcd_container
+> systemctl restart etcd_container
 
 # Check logs of the etcd container
-journalctl -fu etcd_container
+> journalctl -fu etcd_container
 ```
 
 Recovery might take a few minutes, but the platform should show recovering symptoms.
@@ -196,37 +198,37 @@ Remove `--force-new-cluster` flag from member one.
 
 ssh to master1:
 ```
-ssh master1.example.com
+> ssh master1.example.com
 ```
 
 Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
 ```
-sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
+> sed -i '/ExecStart/s/ --force-new-cluster//' /etc/systemd/system/etcd_container.service
 ```
 
 At this point etcd still runs with old systemd. Reload the daemon and restart the `etcd_container` service:
 ```
-systemctl daemon-reload
+> systemctl daemon-reload
 
-systemctl restart etcd_container
+> systemctl restart etcd_container
 ```
 
 Check etcd 1 member list:
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
---cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
---cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
-member list"
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+  --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  member list"
 
 b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
 ```
 
 Add member 2:
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
---cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
---endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
-member add master2.example.com --peer-urls="https://192.168.0.12:2380""
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt \
+  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  member add master2.example.com --peer-urls="https://192.168.0.12:2380""
 
 Member 8d13245ff0d59b2b added to cluster 447e150364ce5cc3
 
@@ -242,12 +244,12 @@ Now ssh to master2 and update main etcd details with these variables:
 :exclamation: *Remove double quotes from the output when updating etcd config file. systemd and etcd does not like them*
 
 ```
-ssh master2.example.com
+> ssh master2.example.com
 ```
 
 Update etcd configuration:
 ```
-vi /etc/etcd/etcd.conf
+> vi /etc/etcd/etcd.conf
 
 ETCD_NAME=master2.example.com
 ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master1.example.com=https://192.168.0.11:2380
@@ -256,12 +258,12 @@ ETCD_INITIAL_CLUSTER_STATE=existing
 
 Remove old member data:
 ```
-rm -rf /var/lib/etcd/member
+> rm -rf /var/lib/etcd/member
 ```
 
 Start etcd container service:
 ```
-systemctl start etcd_container
+> systemctl start etcd_container
 ```
 
 :exclamation: *If you see an error like the one below, the quotes were most likely not removed in the etcd config file*
@@ -273,10 +275,10 @@ Check logs `journalctl -fu etcd_container`
 
 Member list on master1 should show you now 2 running members:
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
---cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
---cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"\
-member list"
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key \
+  --cacert=/etc/etcd/ca.crt --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]"\
+  member list"
 
 4f1716f1da0e8dd9, started, master2.example.com, https://192.168.0.12:2380, https://192.168.0.12:2379
 b2fc96740d4db02e, started, master1.example.com, https://192.168.0.11:2380, https://192.168.0.11:2379
@@ -286,10 +288,10 @@ Repeat the same steps for master3:
 
 On master1:
 ```
-docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
---cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt  \
---endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
-member add master3.example.com --peer-urls="https://192.168.0.13:2380""
+> docker exec -it etcd_container sh -c "ETCDCTL_API=3 etcdctl \
+  --cert=/etc/etcd/peer.crt --key=/etc/etcd/peer.key --cacert=/etc/etcd/ca.crt  \
+  --endpoints="[https://192.168.0.11:2379,https://192.168.0.12:2379,https://192.168.0.13:2379]" \
+  member add master3.example.com --peer-urls="https://192.168.0.13:2380""
 
 Member ffcc8fc41a1321d7 added to cluster 447e150364ce5cc3
 
@@ -300,12 +302,12 @@ ETCD_INITIAL_CLUSTER_STATE="existing"
 
 Switch over to master3:
 ```
-ssh master3.example.com
+> ssh master3.example.com
 ```
 
 Update etcd configuration:
 ```
-vi /etc/etcd/etcd.conf
+> vi /etc/etcd/etcd.conf
 
 ETCD_NAME=master3.example.com
 ETCD_INITIAL_CLUSTER=master2.example.com=https://192.168.0.12:2380,master3.example.com=https://192.168.0.13:2380,master1.example.com=https://192.168.0.11:2380
@@ -314,13 +316,13 @@ ETCD_INITIAL_CLUSTER_STATE=existing
 
 Remove old member data:
 ```
-rm -rf /var/lib/etcd/member
+> rm -rf /var/lib/etcd/member
 ```
 
 Start the etcd container service:
 
 ```
-systemctl start etcd_container
+> systemctl start etcd_container
 ```
 
 Now check the etcd cluster health with the same command from the beginning of the scenario.

@@ -6,6 +6,8 @@ Lenght: 10 min
 Dashboards: Labs Generic
 ```
 
+### Intro
+
 In this lab we will see how OpenShift behaves when losing connectivity to a node due to a SDN problem.
 
 You should see something like this in the `Labs Generic` Grafana dashboard:
