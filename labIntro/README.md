@@ -49,13 +49,13 @@ Hostname              |Internal IP    |Description
 
 :green_book: bulb HAProxy is running on the *workstation* machine.  This provides a level of port forwarding to allow access to the OpenShift console and other services running on OpenShift to overcome some DNS and routing limitations in the underlying Ravello environment.  This includes port 80, 8443 and 8080-8085.
 
-#### Links to tools used during the Lab
+#### Links to tools docs used during the Lab
 
-* [Grafana](https://grafana.apps.example.com/)
-* [Prometheus](https://prometheus.apps.example.com/)
-* [Alertmanager](https://alertmanager.apps.example.com/)
-* [Jenkins Monitor](https://jenkins-ci-cd.apps.example.com/view/summit-labs-fe-monitor/)
-* [Skydive](https://skydive.apps.example.com/)
+* [Grafana](http://docs.grafana.org/)
+* [Prometheus](https://prometheus.io/)
+* [Alertmanager](https://prometheus.io/docs/alerting/alertmanager/)
+* [Jenkins Monitor](https://wiki.jenkins.io/display/JENKINS/Build+Monitor+Plugin)
+* [Skydive](https://skydive-project.github.io/skydive/)
 
 #### Architecture
 
@@ -128,10 +128,9 @@ From a web browser, open URL below in its own window or tab, using `admin` for t
 
 ### Review the Environment
 
-Once the OpenShift environment is up and running, log in to the *OpenShift Enterprise Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`, using these credentials:
+Once the OpenShift environment is up and running, log in to the *OpenShift Enterprise Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`.
 
-* *Username*: `admin`
-* *Password*: `r3dh4t1!`
+:heavy_check_mark: TIP: In order to log into the console, use the credentials provided in the lab slides.
 
 :clock10: If nothing is running on your cluster, give it some time. There is a background service running, which is populating your cluster.
 
