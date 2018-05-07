@@ -31,6 +31,14 @@ Next, create the application build as a docker build and of type `binary`:
 > oc new-build --strategy docker --binary --docker-image centos:centos7 --name hello-openshift
 ```
 
+Before you start we need to make small fix to our dockerfile. Add line in the middle:
+```
+> sudo vi Dockerfile
+EXPOSE 8080 8888
+RUN chmod 777 /hello-openshift
+USER 1001
+```
+
 Next, start the build which will crate the application image. The flag `--from-dir` tells the BuildConfig that we will be using the local file system as source for the build:
 ```
 > oc start-build hello-openshift --from-dir . --follow
