@@ -127,7 +127,7 @@ serving on 8888
 
 Now that we know where the issue is, we can change the entrypoint in the Dockerfile and rebuild the application:
 ```
-> vi Dockerfile
+> sudo vi Dockerfile
   :
 # change
 ENTRYPOINT ["/helo-openshift"]
