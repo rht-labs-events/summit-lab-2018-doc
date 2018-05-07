@@ -2,13 +2,13 @@
 
 This demonstration showcases the following:
 
-* Debug and recover from OpenShift scheduler issues.
-* Troubleshoot Application Storage issues.
-* Recovering from etcd quorum failures in an operational OpenShift Container Platform cluster.
-* Identify and recover from etcd performance issues.
-* Debug and recover from binary build issues and deployments.
-* Debug and recover from an OpenShift node lost due to SDN issues.
-* Debug and recover an OpenShift node from DNS problems.
+  * Debug and recover from OpenShift scheduler issues.
+  * Troubleshoot Application Storage issues.
+  * Recovering from etcd quorum failures in an operational OpenShift Container Platform cluster.
+  * Identify and recover from etcd performance issues.
+  * Debug and recover from binary build issues and deployments.
+  * Debug and recover from an OpenShift node lost due to SDN issues.
+  * Debug and recover an OpenShift node from DNS problems.
 
 #### Goal
 
@@ -60,7 +60,7 @@ Hostname              |Internal IP    |Description
 
 #### Architecture
 
-![alt text](img/diagram.png)
+[![alt text](img/diagram.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/diagram.png)
 
 * You can ssh as `root` from the bastion to any of the OpenShift Container Platform cluster nodes.
 
@@ -72,30 +72,30 @@ Hostname              |Internal IP    |Description
 
 Prometheus will obtain information from endpoints across the environment, and raises alerts based on a set of rules. These alerts are passed to Alertmanager for distribution to dashboards, etc.
 
-![alt text](img/prometheus.png)
+[![alt text](img/prometheus.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/prometheus.png)
 
 
 #### Alertmanager
 
 Alertmanager is used to aggregate alerts and dispatch them to the required delivery destination.
 
-![alt text](img/alertmanager.png)
+[![alt text](img/alertmanager.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/alertmanager.png)
 
 #### Grafana
 
 Grafana is used to graphically represent cluster data. It interacts directly with Prometheus as its data source.
 
- ![alt text](img/grafana.png)
+ [![alt text](img/grafana.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana.png)
 
 Grafana is pre-built with useful dashboards to assist you during the course of this lab. Although not every one of them is needed to finish the lab scenarios, it is highly recommended that you have a closer look at all of them.
 
 The first time you logon to Grafana, you will see a "Home" tab in the top-left corner.
 
-![alt text](img/grafana-home.png)
+[![alt text](img/grafana-home.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-home.png)
 
 If you click on the "Home" tab, a drop-down list with every available dashboard should appear.
 
-![alt text](img/grafana-dashboards.png)
+[![alt text](img/grafana-dashboards.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-dashboards.png)
 
 Below are the 3 Grafana dashboards strictly necessary to finish this lab.
 
@@ -103,20 +103,20 @@ Below are the 3 Grafana dashboards strictly necessary to finish this lab.
 
 It contains generic information about the cluster such us pod count per node, DNS errors or nodes down.
 
-![alt text](img/grafana-labs-generic.png)
+[![alt text](img/grafana-labs-generic.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-labs-generic.png)
 
 **ETCD**
 
 `etcd` cluster related information.
 
-![alt text](img/grafana-etcd.png)
+[![alt text](img/grafana-etcd.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-etcd.png)
 
 
 **Builds Overview**
 
 Builds related information.
 
-![alt text](img/grafana-build-overview.png)
+[![alt text](img/grafana-build-overview.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-build-overview.png)
 
 ### Getting Started
 

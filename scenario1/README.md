@@ -8,9 +8,9 @@ Dashboard: Labs Generic
 
 ### Intro
 
-In this scenario we learn how to detect and identify application storage problems. The backing storage for this lab is Container Native Storage (CNS), running in the same Openshift Container Platform (OCP) cluster. We will investigate a few issues, and use troubleshooting steps to help identify storage problems.
+In this scenario we learn how to detect and identify application storage problems. The backing storage for this lab scenario is Container Native Storage (CNS), running in the same Openshift Container Platform (OCP) cluster. We will investigate a few issues, and use troubleshooting steps to help identify storage problems.
 
-:heavy_check_mark: GlusterFS metrics will be available in Prometheus from OpenShift Container Platform 3.9+. This is outside of the scope of this Lab.*
+:heavy_check_mark: GlusterFS metrics will be available in Prometheus from OpenShift Container Platform 3.9+. This is outside of the scope of this Lab Scenario.*
 
 
 To start the lab scenario, execute the following on the bastion host.
@@ -37,7 +37,7 @@ Registry server Password: <<non-empty>>
 error: build error: Failed to push image: received unexpected HTTP status: 500 Internal Server Error
 ```
 
-The builds should fail. Continue to check some of the other builds for additional failures as those builds are being executed periodically (part of the lab noise making).
+The builds should fail. Continue to check some of the other builds for additional failures as those builds are being executed periodically (part of this scenario's noise making).
 
 If no failed builds can be found, check the build that was just launched automatically:
 
@@ -199,7 +199,7 @@ Now using project "default" on server "https://console.example.com".
 touch: cannot touch '/registry/test': No space left on device
 ```
 
-Surprise :). This would be one of those cases were you would need to raise a support ticket with Red Hat support. For our lab we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
+Surprise :). This would be one of those cases were you would need to raise a support ticket with Red Hat support. For our lab scenario we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
 
 This should be fixed with next heketi release. To work around this issue, (information is in bugzilla) the underlying gluster cluster needs to be re-balanced.
 

@@ -8,19 +8,19 @@ Dashboard: ETCD
 
 ### Intro
 
-In this lab we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) cluster quorum can impact the OpenShift Container Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
+In this lab scenario we will see how loss of the [etcd](https://coreos.com/etcd/docs/latest/faq.html) cluster quorum can impact the OpenShift Container Platforms behaviour and how we can recover from it. We will also provide pointers to material for future readings when planning real life DR situations.
 
 `etcd` stores the persistent OpenShift Container Platform (OCP) master state while other components watch `etcd` for changes to bring themselves into the desired state. `etcd` can be optionally configured for high availability, typically deployed with 2n+1 peer services. For further details, you can read the `What is failure tolerance?` section of [this page](https://coreos.com/etcd/docs/latest/faq.html) at your own leisure.
 
-In this lab `etcd` runs co-hosted with the OpenShift Container Platform (OCP) masters. Before you start, open the Grafana dashboard `ETCD` and inspect monitoring data for the `etcd` cluster.
+In this lab scenario, `etcd` runs co-hosted with the OpenShift Container Platform (OCP) masters. Before you start, open the Grafana dashboard `ETCD` and inspect monitoring data for the `etcd` cluster.
 
 You should see something like this:
 
-![alt text](img/init.png)
+[![alt text](img/init.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/init.png)
 
 Also open the prometheus url and check the alerts tab for any active alerts. At this point, if the environment is functioning properly, you should see no alerts.
 
-![alt text](img/img2-no-alerts.png)
+[![alt text](img/img2-no-alerts.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img2-no-alerts.png)
 
 The state of the `etcd` cluster, can be manually checked via CLI commands on the OCP master - or any remote host which has the OCP certificates available for use.
 
@@ -107,11 +107,11 @@ Execute from the *bastion* host:
 
 After a few seconds grafana should report that only 2 etcd are alive. Make sure to check prometheus and alertmanager for any alerts, which should indicates that one of the `etcd` cluster members is lost.
 
-![alt text](img/etcd1_lost.png)
+[![alt text](img/etcd1_lost.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/etcd1_lost.png)
 
-![alt text](img/img3-lost-etcd-alert.png)
+[![alt text](img/img3-lost-etcd-alert.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/img3-lost-etcd-alert.png)
 
-![alt text](img/img4-lost-etcd-alertmanager.png)
+[![alt text](img/img4-lost-etcd-alertmanager.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/img4-lost-etcd-alertmanager.png)
 
 Use the same `etcdctl` command as executed earlier on the masters to observe the same outage in the output.
 
@@ -125,9 +125,9 @@ Execute from the *bastion* host:
 
 At this point, all the dashboards should indicate major failures and clusters in a bad state.
 
-![alt text](img/2etcd_down.png)
+[![alt text](img/2etcd_down.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/2etcd_down.png)
 
-![alt text](img/img6-hell-got-loose.png)
+[![alt text](img/img6-hell-got-loose.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/img6-hell-got-loose.png)
 
 
 In a clustered deployment, there is always a possibility of loosing some of the cluster nodes due to hardware failure, networking disconnects, etc. For a clustered `etcd`, such an outage means loosing quorum, and hence results in a broken etcd cluster. It is very important to have the proper monitoring in place to detect such failure as soon as possible to avoid data loss or corruption.
@@ -146,7 +146,7 @@ If you want to skip these task, execute from the *bastion* host:
 > lab -s 2 -a solve
 ```
 
-Useful commands for this lab:
+Useful commands for this lab scenario:
 
 ```
 > journalctl -fu <service_name>  << follow logs of the service
@@ -184,9 +184,7 @@ Force new cluster to use a single `etcd` node:
 
 Recovery might take a few minutes, but the platform should show recovering symptoms.
 
-![alt text](img/img7-one-etcd.png)
-
-![alt text](img/img7-one-etcd.png)
+[![alt text](img/img7-one-etcd.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario2/img/img7-one-etcd.png)
 
 All other operations should be getting back to normal. Since master1 (surviving etcd node) was instructed to "start new cluster with existing data", you can check builds in ci-cd namespace and observe that they should be starting again.
 
@@ -329,7 +327,7 @@ Now check the etcd cluster health with the same command from the beginning of th
 
 This scenario has demonstrated failure and recovery steps for an etcd cluster, where old nodes were available to use. Ansible playbooks are available to do all these steps for you.
 
-If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab.
+If the nodes are completely lost / unrecoverable, there are addition steps involved to generate new certificates and distribute them. But this is out of scope for this lab scenario.
 
 Finally, all 3 `etcd` cluster hosts should now be back online in Grafana and no alerts in prometheus. Notify the instructor if this is not the case. :)
 

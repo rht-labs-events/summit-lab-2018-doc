@@ -12,7 +12,7 @@ In this scenario, we will be debugging an application with the command `oc debug
 
 Type `oc debug -h` for more information on how to use it.
 
-To start this scenario execute the following command on the bastion:
+To start this scenario execute the following command on the `bastion` host:
 ```
 > lab -s 4 -a init
 ```
@@ -75,7 +75,7 @@ hello-openshift-1-build    0/1       Completed          0          6m
 hello-openshift-1-deploy   1/1       Running            0          3m
 
 
-# start app in debug mode:
+# start the application in debug mode:
 > oc debug hello-openshift-1-6l22c
 Debugging with pod/hello-openshift-1-6l22c-debug, original command: /helo-openshift
 Waiting for pod to start ...
@@ -120,7 +120,7 @@ drwxr-xr-x.  18 root root     238 Mar  2 01:07 var
 
 First, try running again with the correct binary name - `hello-openshift`:
 ```
-./hello-openshift
+> ./hello-openshift
 serving on 8080
 serving on 8888
 ```
@@ -180,7 +180,7 @@ groups:
        severity: LOW
 ```
 
-To resolve the scenario:
+To resolve the scenario, run the following command:
 ```
 > lab -s 4 -a solve
 ```

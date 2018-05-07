@@ -8,19 +8,19 @@ Dashboard: Labs Generic
 
 ### Intro
 
-In this lab we will see how external factors to the `etcd` cluster can impact the OpenShift Container Platforms behaviour and how we can recover from it.
+In this lab scenario we will see how external factors to the `etcd` cluster can impact the OpenShift Container Platforms behaviour and how we can recover from it.
 
 To start scenario:
 ```
-lab -s 3 -a init
+> lab -s 3 -a init
 ```
 Good dashboard looks like picture below. Check time drift graph.
 
-![alt text](img/init.png)
+[![alt text](img/init.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario3/img/init.png)
 
 No direct impact to the OpenShift Container Platform (OCP) cluster may be immediately noticeable, but dashboards and alerts might help you :)
 
-Useful commands for this lab:
+Useful commands for this lab scenario:
 
 ```
 > journalctl -fu <service_name>                        # follow logs of the service
@@ -36,7 +36,7 @@ This scenario is one the more common issues seen in customer environments. Distr
 
 Check dashboards for alerts and visualizations:
 
-![alt text](img/alert.png)
+[![alt text](img/alert.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario3/img/alert.png)
 
 #### Check time on all etcd nodes
 
@@ -56,7 +56,7 @@ Mon Mar 26 07:42:36 EDT 2018
 
 This is far from reliable data, but the time difference is noticeable and most likely impacts the OCP cluster. The same information can be observed in grafana:
 
-![alt text](img/time_drift.png)
+[![alt text](img/time_drift.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario3/time_drift.png)
 
 Because this system is running in isolation, the time drift is calculated based on average of all infrastructure. In a real world deployment, external NTP servers should be used to ensure proper tim sync.
 
@@ -79,7 +79,7 @@ Force time sync:
 
 The alerts should resolve, and grafana shows new state:
 
-![alt text](img/normalize.png)
+[![alt text](img/normalize.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario3/normalize.png)
 
 ### Appendix
 

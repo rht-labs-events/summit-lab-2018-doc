@@ -15,34 +15,33 @@ If you want to know how DNS configuration works in the OpenShift Container Platf
 
 The following is the DNS architecture diagram for an OpenShift Container Platform node:
 
-![alt text](img/img0-dns-diagram.png)
+[![alt text](img/img0-dns-diagram.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario6/img/img0-dns-diagram.png)
 
-A tricky thing about DNS problems, as you may already know, is that your OpenShift Container Platform cluster may operate just fine, while the  applications might not.
+A tricky thing about DNS problems, as you may already know, is that your OpenShift Container Platform (OCP) cluster may operate just fine, while the applications might not.
 
-To start the scenario:
+To start this lab scenario:
 ```
 > lab -s 6 -a init
 ```
 
-#### Lab Goal:
+#### Lab Scenario Goal:
 
 * Task 1: Identify which node is impacted and why.
 
 * Task 2: Identify which component or components are impacted. Fix it ;)
 
-* *Hint 1*: dnsmasq is a key component of the OpenShift Container Platform DNS architecture.
-
+_**Hint 1**_: dnsmasq is a key component of the OpenShift Container Platform DNS architecture.
 
 If you want to skip this task, execute on the <b>bastion</b>:
 ```
 > lab -s 6 -a solve
 ```
 
-Useful commands for this lab:
+Useful commands for this scenario:
 
 ```
 > systemctl status/stop <service_name>
-> journalctl -fu <service_name> - follow logs of the service
+> journalctl -fu <service_name>              # follow logs of the service
 > oc get nodes
 > dig
 > ss -ntlp
@@ -58,17 +57,17 @@ Checking the monitoring tools, Grafana, Prometheus and Alertmanager, will potent
 
 Something like the following in the `Labs Generic` Grafana dashboard (DNS errors per node graph) should be displayed:
 
-![alt text](img/dns.png)
+[![alt text](img/dns.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario6/img/dns.png)
 
 This Grafana panel gives you enough information to know which node is having DNS problems, but it is also good to check Prometheus and Alertmanager as well.
 
 Both should show alerts:
 
-![alt text](img/img1-alertmanager-dns-alert.png)
+[![alt text](img/img1-alertmanager-dns-alert.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario6/img/img1-alertmanager-dns-alert.png)
 
-![alt text](img/img3-prom-dns-alert.png)
+[![alt text](img/img3-prom-dns-alert.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario6/img/img3-prom-dns-alert.png)
 
-Now that it is clear that node 1 is impacted, the next step is to identify what is broken.
+Now that it is clear that OpenShift Container Platform (OCP) node 1 is impacted, the next step is to identify what is broken.
 
 #### Task 2 solution: Identify which component or components are impacted. Fix it.
 
@@ -83,7 +82,7 @@ The DNS resolution in this case happens by first consulting the embedded SkyDNS 
 172.30.0.1
 ```
 
-The result shows that SkyDNS is resolving properly. Next, check dnsmasq. Get node ip:
+The result shows that SkyDNS is resolving properly. Next, check dnsmasq. Get the node ip address:
 
 ```
 > ip a s eth0
@@ -96,7 +95,7 @@ The result shows that SkyDNS is resolving properly. Next, check dnsmasq. Get nod
 
 ```
 
-Check dnsmasq:
+From the above output, the ip address is `192.168.0.31`. Use that IP to check the dnsmasq resolution:
 
 ```
 > dig @192.168.0.31 kubernetes.default.svc.cluster.local +short
@@ -113,19 +112,12 @@ Check dnsmasq:
   Process: 1056 ExecStart=/usr/sbin/dnsmasq -k (code=exited, status=0/SUCCESS)
  Main PID: 1056 (code=exited, status=0/SUCCESS)
 
-Apr 18 03:57:31 node1.example.com dnsmasq[1056]: using nameserver 127.0.0.1#53 for domain cluster.local
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: setting upstream servers from DBus
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: using nameserver 127.0.0.1#53 for domain cluster.local
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: using nameserver 127.0.0.1#53 for domain in-addr.arpa
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: using nameserver 192.168.0.1#53
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: using nameserver 127.0.0.1#53 for domain in-addr.arpa
-Apr 18 03:57:33 node1.example.com dnsmasq[1056]: using nameserver 127.0.0.1#53 for domain cluster.local
-Apr 18 04:15:54 node1.example.com systemd[1]: Stopping DNS caching server....
-Apr 18 04:15:54 node1.example.com dnsmasq[1056]: exiting on receipt of SIGTERM
-Apr 18 04:15:54 node1.example.com systemd[1]: Stopped DNS caching server..
+  :
+ (output truncated)
+  :
 ```
 
-The `dnsmasq` service was stopped. Start it and check the DNS resolution again.
+As the output above shows, the `dnsmasq` service is an `inactive` state (i.e.: non-operational). Start it and check the DNS resolution again.
 
 ```
 > systemctl start dnsmasq
@@ -142,10 +134,10 @@ Next, check Grafana, Prometheus and Alertmanager again - at this point there sho
 
 #### Materials used in the scenario
 
-1. OpenShift DNS Docs:
+1. OpenShift Container Platform DNS Docs:
 https://docs.openshift.com/container-platform/3.9/architecture/networking/networking.html#architecture-additional-concepts-openshift-dns
 
-2. OpenShift DNS Deep dive:
+2. OpenShift Container Platform DNS Deep dive:
 https://www.redhat.com/en/blog/red-hat-openshift-container-platform-dns-deep-dive-dns-changes-red-hat-openshift-container-platform-36
 
 

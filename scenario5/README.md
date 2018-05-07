@@ -8,79 +8,79 @@ Dashboards: Labs Generic
 
 ### Intro
 
-In this lab we will see how OpenShift behaves when losing connectivity to a node due to a SDN problem.
+In this lab scenario we will see how the OpenShift Container Platform behaves when losing connectivity to a node due to a SDN (Software-Defined-Network) problem.
 
-You should see something like this in the `Labs Generic` Grafana dashboard:
+The `Labs Generic` Grafana dashboard should show an outage similar to this:
 
-![alt text](img/lost_node.png)
+[![alt text](img/lost_node.png)](https://rht-labs-events.github.io/summit-lab-2018-doc//scenario5/img/lost_node.png)
+
 
 To start the scenario:
 ```
-lab -s 5 -a init
+> lab -s 5 -a init
 ```
 
-Try to guess what would happen, so at the end of the scenario you could validate if your reasoning was right or wrong ;).
+During this scenario, you will be introduced to the SkyDive tool, :
 
-As a bonus, you will be introduced to SkyDive tool:
+* SkyDive is an open source, real-time network topology and protocols analyzer.  It aims to provide a comprehensive way of understanding what is happening in the network infrastructure.
 
-* An open source real-time network topology and protocols analyzer.  It aims to provide a comprehensive way of understanding what is happening in the network infrastructure.
+* The purpose of using SkyDive in this scenario is to visualize the OpenShift Container Platform Software Defined Network (SDN) to gain a better understanding of how it works.
 
-* The aim of using SkyDive in this scenario is to give you the opportunity to visualize OpenShift SDN and a better understanding of how it works.
+* SkyDive will show all the SDN related pieces working together: pods, containers, namespaces, virtual switches, interfaces, etc.
 
-* You could see all SDN pieces working together: pods, containers, namespaces, virtual switches, interfaces, etc.
-
-SkyDive console is pretty cool. Get the route to the console from `skydive` namespace:
+To access SkyDive, start by getting the route to the SkyDive console from the `skydive` namespace:
 
 ```
-oc -n skydive get route
+> oc -n skydive get route
 NAME               HOST/PORT                                             PATH      SERVICES           PORT      TERMINATION   WILDCARD
 skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io             skydive-analyzer   api                     None
 ```
 
-:heavy_check_mark: Skydive is exposed in port 80, so use http to access the route instead of https.
+:heavy_check_mark: Skydive is exposed in port 80, so make sure to use http to access the route instead of https.
 
 
-![alt text](img/img2-skydive-general.png)
+[![alt text](img/img2-skydive-general.png)](https://rht-labs-events.github.io/summit-lab-2018-doc//scenario5/img/img2-skydive-general.png)
 
-#### Lab Goal:
+#### Lab Scenario Goals:
 
-**You can spend 1 or 2 minutes checking SkyDive console, just to see all SDN pieces working together.**
+**Spend 1 - 2 minutes becoming familiar with the SkyDive console, just enough to explore the various SDN components.**
 
-**You won't need SkyDive to solve this scenario though ;). It is just a visualization tool.**
-
-
-* Task 1: Identify why one of your nodes is down. Identify which one. Use Grafana dashboard `Labs Generic` and Alertmanager.
-
-* Task 2: Make your node ready again. It seems like a connectivity problem, right? Try to start the service `atomic-openshift-node` and see what happens.
-
-* Hint 1: openvswitch is a key component of the OpenShift SDN.
+**SkyDive is not needed to solve this scenario, but can be useful to better understand the environment.**
 
 
-If you want to skip these task, execute on the <b>bastion</b>
+* Task 1: Identify why one of your OpenShift Container Platform (OCP) worker nodes is down. Identify which one. Use Grafana dashboard `Labs Generic` and Alertmanager.
+
+* Task 2: Recover the OpenShift Container Platform (OCP) worker node.
+ * _**Hint:**_ It seems like a connectivity problem, right? Try starting the service called `atomic-openshift-node` to see what happens.
+
+_**Hint:**_ openvswitch is a key component of the OpenShift SDN.
+
+
+To start this scenario execute the following command on the `bastion` host:
 ```
-lab -s 5 -a solve
+> lab -s 5 -a solve
 ```
 
-Useful command for this lab:
+Useful command for this lab scenario:
 
 ```
-journalctl -fu <service_name> - follow logs of the service
-oc get nodes
-oc describe node <node_nae>
+> journalctl -fu <service_name>      # follow logs of the service
+> oc get nodes                       # obtain a list of OCP nodes
+> oc describe node <node_nae>        # obtain more info for a particular OCP node
 ```
 
 ### Solution
 
-#### Task 1 solution: Identify node down
+#### Task 1 solution: Identify which worker node is down
 
-Nodes (atomic-openshift-node/kubelet) sends heartbeats periodically to the API. Thats how a node reports its status to the cluster. Healthy nodes should be in `Ready` status.
+The OpenShift Container Platform (OCP) Nodes (atomic-openshift-node/kubelet) send heartbeats periodically to the API. That is how a node reports its status to the master(s) of the OpenShift Container Platform cluster. Healthy nodes should be in a `Ready` state.
 
-You can check your cluster nodes by executing `oc get nodes`. You can check one particular node by running `oc describe node <OCP_NODE>` to one of the nodes of your cluster. Actually this command gives you a lot more information of the node.
+Check the OpenShift Container Platform (OCP) cluster nodes by executing `oc get nodes`. A lot more information and the specifics of a particular node can be obtained by running `oc describe node <OCP_NODE>` (replace `<OCP_NODE>` with the actual OCP node name).
 
-Here it is the example output of the node, expect to see something similar:
+Below is an example output for a node, expect to see something similar:
 
 ```
-oc describe node node2.example.com
+> oc describe node node2.example.com
 Name:               node2.example.com                                                                                                                                                                                
 Roles:              compute                                                                                                                                                                                          
 Labels:             beta.kubernetes.io/arch=amd64                                                                                                                                                                    
@@ -103,56 +103,54 @@ Conditions:
   Ready            True    Sat, 07 Apr 2018 09:10:47 -0400   Sat, 07 Apr 2018 07:02:55 -0400   KubeletReady                 kubelet is posting ready status                          
 ```
 
-Although you should already know which node is down, you should also check Grafana, Prometheus and Alertmanager to get more info.
+At this point, the node in a "not Ready" state has been identified, but to verify, also check Grafana, Prometheus and Alertmanager to get more info.
 
-So open Grafana dashboard `Labs Generic` and check the `Nodes Down` panel.
+Open the Grafana dashboard `Labs Generic` and check the `Nodes Down` panel.
 
-You should see something like this:
+Something similar to the following should be shown:
 
-![alt text](img/img3-grafana-nodes-down-panel.png)
+[![alt text](img/img3-grafana-nodes-down-panel.png)](https://rht-labs-events.github.io/summit-lab-2018-doc//scenario5/img/img3-grafana-nodes-down-panel.png)
 
-Now check both Prometheus and Alertmanager. You should have alerts in both:
+Now check both Prometheus and Alertmanager, both of which should show alerts for the node:
 
-![alt text](img/img1-alerts_alertmanager.png)
+[![alt text](img/img1-alerts_alertmanager.png)](https://rht-labs-events.github.io/summit-lab-2018-doc//scenario5/img/img1-alerts_alertmanager.png)
 
-Note that apart from the "Node Down" alert you have two scheduler related alerts. The reason is that nodes 1 & 3 have more Pods than they should, as the Pods from node 2 have been re-scheduled into those nodes.
+Note that apart from the "Node Down" alert, there are two scheduler related alerts. The reason is that nodes 1 & 3 have more Pods than they should, as the Pods from "not ready" node 2 have been re-scheduled into those extra nodes. This is due to a configured alert to be raised on un-even Pod distribution situations.
 
-This a configured alert to raise un-even Pod distribution situations in your cluster nodes ;).
+[![alt text](img/img1-prometheus-alerts.png)](https://rht-labs-events.github.io/summit-lab-2018-doc//scenario5/img/img1-prometheus-alerts.png)
 
-![alt text](img/img1-prometheus-alerts.png)
+As seen above, node 2 is down. Next steps is to start troubleshooting why and resolve the issue(s).
 
-Now that we now that node 2 is down, we have to discover what is not working properly.
-
-Let's ssh into it, and check the status of the `atomic-openshift-node`:
+Start by accessing the node with ssh, and check the status of the `atomic-openshift-node` service:
 
 ```
-ssh node2.example.com
-systemctl status atomic-openshift-node
+> ssh node2.example.com
+> systemctl status atomic-openshift-node
 ```
 
-As you can see, the service is stopped. Let's check  also the `openvswitch` service:
+From the output, it can be seen that the service is stopped. Next also check the `openvswitch` service:
 
 ```
-ssh node2.example.com
-systemctl status openvswitch
+> ssh node2.example.com             # Only needed if not already logged in to the node
+> systemctl status openvswitch
 ```
 
-We can see is stopped too.
+As the output shows, this service is stopped as well.
 
 #### Task 2 solution: Make node ready again
 
-Now that we know what is happening, start `atomic-openshift-node` service again.
+Now that the root cause (or at least parts of it) has been identified, attempt to start the `atomic-openshift-node` service again.
 
 ```
-systemctl start atomic-openshift-node
+> systemctl start atomic-openshift-node
 ```
 
-There is no need to start each service independently. Actually `atomic-openshift-node` systemd unit has `openvswitch` as one of its dependencies, so when `atomic-openshift-node` is started, `openvswitch` service is started too.
+There is no need to start each service independently. The `atomic-openshift-node` systemd service has `openvswitch` as one of its dependencies, so when `atomic-openshift-node` is started, `openvswitch` service is started too.
 
-You can check that `openvswitch` service is already running after starting `atomic-openshift-node`.
+Next, check that the `openvswitch` service has been started as part of starting the `atomic-openshift-node` service. The output should show somathing similar to the example below:
 
- ```
-systemctl status openvswitch
+```
+> systemctl status openvswitch
 ● openvswitch.service
    Loaded: loaded (/etc/systemd/system/openvswitch.service; enabled; vendor preset: disabled)
   Drop-In: /etc/systemd/system/openvswitch.service.d
@@ -176,14 +174,14 @@ Apr 19 12:33:51 node1.example.com openvswitch[2124]: Starting ovs-vswitchd [  OK
 Apr 19 12:33:52 node1.example.com openvswitch[2124]: Enabling remote OVSDB managers [  OK ]
 ```
 
-Check again Grafana, Prometheus and Alertmanager. You should not see any alerts.
+Finally, navigate back to Grafana, Prometheus and Alertmanager. No more alerts should be visible:
 
-:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around 5-10 min delay.
+:heavy_check_mark: Alertmanager alerts usually take a while to disappear, so expect around a 5-10 min delay.
 
-:exclamation: There is a known [issue](https://github.com/openshift/origin/issues/19466) related to SkyDive where Pod interfaces are not cleaned. So even if you have solved the scenario by yourself, please solve it using the lab cli to remove SkyDive.
+:exclamation: There is a known [issue](https://github.com/openshift/origin/issues/19466) related to SkyDive where Pod interfaces are not cleaned. To work around this, please use the lab cli to resolve this scenario and remove SkyDive:
 
 ```
-lab -s 5 -a solve
+> lab -s 5 -a solve
 ```
 
 ### OVS Deep dive
@@ -191,10 +189,10 @@ lab -s 5 -a solve
 All traffic in the OpenShift OVS based plugins can be inspected even more. On a node of your choice execute:
 
 ```
-docker exec openvswitch ovs-ofctl -O OpenFlow13 dump-flows br0
+> docker exec openvswitch ovs-ofctl -O OpenFlow13 dump-flows br0
 ```
 
-You should see all flows for this particular node:
+The output should show all flows for this particular node, as an example:
 ```
 OFPST_FLOW reply (OF1.3) (xid=0x2):
  cookie=0x0, duration=578.553s, table=0, n_packets=0, n_bytes=0, priority=250,ip,in_port=2,nw_dst=224.0.0.0/4 actions=drop
@@ -215,9 +213,9 @@ OFPST_FLOW reply (OF1.3) (xid=0x2):
  cookie=0x0, duration=578.356s, table=101, n_packets=0, n_bytes=0, priority=0 actions=output:2
 ```
 
-Rules are complicated. But what you need to know is the high level structure of the tables.
+The rules are complicated and can be hard to read. For now, all you need to focus on is the high level structure of the tables.
 
-Some of the rules:
+For example, some of the rules:
 
 ```
 Table 10: VXLAN ingress filtering; filled in by AddHostSubnetRules()
@@ -227,13 +225,13 @@ Table 40: ARP to local container, filled in by setupPodFlows
 Table 101: egress network policy dispatch; edited by UpdateEgressNetworkPolicy()
 ```
 
-Sometimes you can observe a misbehavior, lets say EgressNetworkPolicy does not work as you expect or you think it does not work as you expect. By knowing how to dump rules, and where to look you can validate your doubts.
+If a misbehavior is observed, for example EgressNetworkPolicy does not work as expected, or for other reasons it may need to be inspected. By knowing how to dump the rules, and where to look, you can validate if the operation is working or not:
 
 ### Appendix
 
 #### Materials used in the scenario
 
-1. OpenShift SDN Docs:
+1. OpenShift Container Platform SDN Docs:
 https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.html
 
 2. SkyDive Docs:

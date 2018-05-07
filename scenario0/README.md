@@ -11,7 +11,7 @@ Dashboard: Labs Generic
 In this scenario we will take a closer look at the OpenShift Container Platform scheduler, how limits works, and how it can impact your platforms behaviour and performance. At the end of this scenario, you should have a better understanding of why you should care about the OpenShift Container Platform scheduler.
 
 The Labs Generic dashboard should look something like this:
-![alt text](img/0-init.png)
+[![alt text](img/0-init.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario0/img/0-init.png)
 
 
 To start this scenario execute the following command on the bastion:
@@ -70,10 +70,10 @@ First, there is a clear indication that the scheduler does not know how to sprea
 Secondly, each pod does not have any limits, so again, scheduler does not know the possible resource consumption of each pod, and hence does not know when node will be full.
 
 At this point, check the dashboards and alerts. As shown below, the node2 pod count is a lot higher than the average (yours might be different). The first graph on row 2 shows the same.
-![alt text](img/1-start.png)
+[![alt text](img/1-start.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario0/img/1-start.png)
 
 Alert manager should raise an alert for this.
-![alt text](img/2-alert_manager_scheduler.png)
+[![alt text](img/2-alert_manager_scheduler.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario0/img/2-alert_manager_scheduler.png)
 
 Task 1: Identify why pods are not being balanced across the 3 worker nodes.
 For this solution DO NOT modify the default scheduler or the master configuration. Everything should be done at the project level and by utilizing node labeling.
@@ -140,7 +140,7 @@ Events:         <none>
 
 Again, based on this output, it is clear that `node1` is not highly utilized, and there are resources available in the `Allocatable` section.
 
-*Tip:* It is worth mentioning that `QoS` is active and you should be aware about how it works. It is recommended that you read the following page at your own leisure: https://blog.openshift.com/managing-compute-resources-openshiftkubernetes/
+_**Tip:**_ It is worth mentioning that `QoS` is active and you should be aware about how it works. It is recommended that you read the following page at your own leisure: https://blog.openshift.com/managing-compute-resources-openshiftkubernetes/
 
 If `oc describe node` is done on the node where all of the `hello-openshift` pods are running, it indicates that the pods have no limits and quotas:
 ```
@@ -245,7 +245,7 @@ After the old pods have been deleted, and new ones created, check the placement 
 At this point, the placement should show a utilization of all 3 nodes because `serviceAntiAffinity` is based on zone label, so scheduler is trying to balance pod placement across all matching nodes.
 
 The dashboard should now be back to normal:
-![alt text](img/solved.png)
+[![alt text](img/solved.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario0/img/solved.png)
 
 When you done with the scenario, execute the following command on the  bastion host:
 
