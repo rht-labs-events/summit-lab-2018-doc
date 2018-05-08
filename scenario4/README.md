@@ -31,15 +31,7 @@ Next, create the application build as a docker build and of type `binary`:
 > oc new-build --strategy docker --binary --docker-image centos:centos7 --name hello-openshift
 ```
 
-Before you start we need to make small fix to our dockerfile. Add line in the middle:
-```
-> sudo vi Dockerfile
-EXPOSE 8080 8888
-RUN chmod 777 /hello-openshift
-USER 1001
-```
-
-Next, start the build which will crate the application image. The flag `--from-dir` tells the BuildConfig that we will be using the local file system as source for the build:
+Next, start the build which will create the application image. The flag `--from-dir` tells the BuildConfig that we will be using the local file system as source for the build:
 ```
 > oc start-build hello-openshift --from-dir . --follow
 ```
@@ -94,7 +86,7 @@ If you don't see a command prompt, try pressing enter.
 The output in debug mode suggest that the container's entry point is `/helo-openshift`. To further investigate, running in debug mode provides an interactive shell to the container. Try executing the entrypoint command to see what happens:
 ```
 > /helo-openshift
-sh: /helo-openshift: No such file or direct
+sh: /helo-openshift: No such file or directory
 ```
 
 As this command does not exist, find the correct one and change the entrypoint:
@@ -128,20 +120,31 @@ drwxr-xr-x.  18 root root     238 Mar  2 01:07 var
 
 First, try running again with the correct binary name - `hello-openshift`:
 ```
-> ./hello-openshift
-serving on 8080
-serving on 8888
+sh-4.2$ ./hello-openshift
+sh: ./hello-openshift: Permission denied
 ```
 
-Now that we know where the issue is, we can change the entrypoint in the Dockerfile and rebuild the application:
+Because we are running non-privileged container we cant change file permissions here.
+
+Now that we know where the issues are.
+1. Change the ENTRYPOINT value in the Dockerfile
+2. Open the file for execution
+3. Rebuild the application.
+
+We can do this by modifying dockerfile on the bastion host:
 ```
 > sudo vi Dockerfile
-  :
 # change
+USER 1001
 ENTRYPOINT ["/helo-openshift"]
- to
+
+# to
+
+RUN chmod 777 /hello-openshift
+USER 1001
 ENTRYPOINT ["/hello-openshift"]
 ```
+
 
 And rebuild the application:
 ```
@@ -155,7 +158,7 @@ NAME                       READY     STATUS      RESTARTS   AGE
 hello-openshift-1-build    0/1       Completed   0          18m
 hello-openshift-1-deploy   0/1       Error       0          16m
 hello-openshift-2-build    0/1       Completed   0          6m
-hello-openshift-2-t9l9r    1/1       Running     0          5m
+hello-openshift-2-t9l9r    1/1       ContainerRunError     0          5m
 ```
 
 Once the build has finished, check the route to the application:
