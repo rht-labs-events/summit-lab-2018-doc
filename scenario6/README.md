@@ -32,7 +32,7 @@ To start this lab scenario:
 
 _**Hint 1**_: dnsmasq is a key component of the OpenShift Container Platform DNS architecture.
 
-If you want to skip this task, execute on the <b>bastion</b>:
+If you want to skip these tasks, execute on the <b>bastion</b>:
 ```
 > lab -s 6 -a solve
 ```
@@ -76,7 +76,7 @@ Use ssh to access the node, and check the DNS resolution (keeping in mind to the
 The DNS resolution in this case happens by first consulting the embedded SkyDNS in the OpenShift node service (127.0.0.1:53) and next the dnsmasq service (<node_ip>:53).
 
 ```
-> ssh node1.example.com
+> ssh root@node1.example.com
 
 > dig @127.0.0.1 kubernetes.default.svc.cluster.local +short
 172.30.0.1
