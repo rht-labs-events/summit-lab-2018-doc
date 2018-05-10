@@ -141,7 +141,7 @@ Task 1: Put master1's `etcd` process (etcd_container) into a `single-node` mode 
 Task 2: Now lets assume you got master2 and master3 back. You should add master2 `etcd` and master3 `etcd` to the existing etcd cluster of master1.
 This will involve adding new members to the master1 cluster by re-configuring master2 and master3 to join this cluster.
 
-If you want to skip these task, execute from the *bastion* host:
+If you want to skip these tasks, execute from the *bastion* host:
 ```
 > lab -s 2 -a solve
 ```

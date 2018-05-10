@@ -124,7 +124,7 @@ sh-4.2$ ./hello-openshift
 sh: ./hello-openshift: Permission denied
 ```
 
-Because we are running non-privileged container we cant change file permissions here.
+Because we are running non-privileged container we can not change file permissions here.
 
 Now that we know where the issues are.
 1. Change the ENTRYPOINT value in the Dockerfile

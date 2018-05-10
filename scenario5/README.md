@@ -56,7 +56,7 @@ skydive-analyzer   skydive-analyzer-skydive.apps.129.213.76.166.xip.io          
 _**Hint:**_ openvswitch is a key component of the OpenShift SDN.
 
 
-To start this scenario execute the following command on the `bastion` host:
+To solve this scenario execute the following command on the `bastion` host:
 ```
 > lab -s 5 -a solve
 ```

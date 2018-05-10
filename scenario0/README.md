@@ -161,7 +161,7 @@ Last place to check is the Kubernetes scheduler:
 
 Start by using ssh to access any of the masters, and check the scheduler file:
 ```
-> ssh master1.example.com
+> ssh root@master1.example.com
 > cat /etc/origin/master/scheduler.json
 {
     "apiVersion": "v1",
@@ -226,7 +226,7 @@ openshift.io/node-selector: zone=az1
 
 If a default node selector is not defined at the project level, it will use the one from the openshift master config:
 ```
-> ssh master1.example.com
+> ssh root@master1.example.com
 > cat /etc/origin/master/master-config.yaml | grep defaultNodeSelector
   defaultNodeSelector: region=workers
 ```
