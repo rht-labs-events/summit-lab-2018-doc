@@ -25,9 +25,9 @@ Product |Version
 --------- | ---------
 `OpenShift Container Platform` |`3.9`
 `Container Native Storage` |`3.3`
-`Grafana` |
-`Prometheus` |
-`Alertmanager` |
+`Grafana` |`5.1.2`
+`Prometheus` |`3.9.14`
+`Alertmanager` |`3.9.14`
 
 ### Environment
 
@@ -118,9 +118,17 @@ Builds related information.
 
 [![alt text](img/grafana-build-overview.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/grafana-build-overview.png)
 
+#### Jenkis/Jenkins Monitor
+
+Jenkins and its `Build Monitor Plugin` is deployed as part of the Lab. This tool is not required to solve any scenario during the Lab session but is used to fire up Builds and Deployments automatically during the session. `Build Monitor Plugin` is an useful tool to radiate information to DevOps teams and get a quick feedback from Builds and Deployments after any new commited code to our applications.
+
+The view we have pre-configured for this Lab is showing the actual status for our demo app which is built and deployed to different environments (dev, test, uat) in the OpenShift Cluster.
+
+[![alt text](img/jenkins-monitor.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/jenkins-monitor.png)
+
 ### Getting Started
 
-Open a new web browser window (or tab), then enter the URL below. Use `admin` for the username and `r3dh4t1!` for the password:
+Open a new web browser window (or tab), then enter the URL below. Use the credentials provided during the lab session:
 
 * *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
 
@@ -161,7 +169,10 @@ To init this scenario execute:
 
 ### CLI access
 
-Once the environment has been successfully bootstrapped, you should see all the welcome screen urls replaced with valid values:
+Once the environment has been successfully bootstrapped, you should see all the welcome screen urls **replaced with valid values** (note that `example.com` is not the valid domain for your Lab):
+
+:heavy_check_mark: NOTE: **This information can be recalled at any point by executing: `lab -h`**
+
 ```
 Information about Your current environment:
 Your GUID: repl
@@ -172,18 +183,13 @@ Infrastructure:
     3 x Masters/Etcd   - master[1-3].example.com                      
     3 x Infra/Gluster  - infra[1-3].example.com                       
     3 x Nodes          - node[1-3].example.com                        
-
-SSH user: root                                                        
-Proxy command:                                                        
-    ssh -D 8080 -C -N root@workstation-repl.rhpds.opentlc.com                                                                                                      
+                                                                                           
 
 Pre-Deployed apps:                                                    
     https://prometheus.apps.example.com
     https://grafana.apps.example.com
     https://alertmanager.apps.example.com
 ```
-
-This information can be recalled at any point by executing: `lab -h`
 
 Initially, there is a set of pre-deployed applications available for your use. Please take a moment to become familiar with what is already there.
 
