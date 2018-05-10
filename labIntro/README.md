@@ -122,7 +122,7 @@ Builds related information.
 
 Jenkins and its `Build Monitor Plugin` is deployed as part of the Lab. This tool is not required to solve any scenario during the Lab session but is used to fire up Builds and Deployments automatically during the session. `Build Monitor Plugin` is an useful tool to radiate information to DevOps teams and get a quick feedback from Builds and Deployments after any new commited code to our applications.
 
-The view we have pre-configured for this Labs show us the actual status for our demo app which is built and deployed to different environments (dev, test, uat) in the OpenShift Cluster.
+The view we have pre-configured for this Lab is showing the actual status for our demo app which is built and deployed to different environments (dev, test, uat) in the OpenShift Cluster.
 
 [![alt text](img/jenkins-monitor.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/labIntro/img/jenkins-monitor.png)
 
