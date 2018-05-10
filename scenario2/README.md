@@ -166,7 +166,7 @@ Switch master1/etcd1 to single master mode:
 ssh to master1:
 
 ```
-> ssh master1.example.com
+> ssh root@master1.example.com
 ```
 
 Force new cluster to use a single `etcd` node:
@@ -196,7 +196,7 @@ Remove `--force-new-cluster` flag from member one.
 
 ssh to master1:
 ```
-> ssh master1.example.com
+> ssh root@master1.example.com
 ```
 
 Re-edit the `/etc/systemd/system/etcd_container.service` file and remove the --force-new-cluster option:
@@ -242,7 +242,7 @@ Now ssh to master2 and update main etcd details with these variables:
 :exclamation: *Remove double quotes from the output when updating etcd config file. systemd and etcd does not like them*
 
 ```
-> ssh master2.example.com
+> ssh root@master2.example.com
 ```
 
 Update etcd configuration:
@@ -300,7 +300,7 @@ ETCD_INITIAL_CLUSTER_STATE="existing"
 
 Switch over to master3:
 ```
-> ssh master3.example.com
+> ssh root@master3.example.com
 ```
 
 Update etcd configuration:
