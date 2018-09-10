@@ -131,7 +131,7 @@ Now that we know where the issues are.
 2. Open the file for execution
 3. Rebuild the application.
 
-We can do this by modifying dockerfile on the bastion host:
+We can do this by modifying Dockerfile on the bastion host:
 ```
 > sudo vi Dockerfile
 # change
@@ -200,10 +200,10 @@ To resolve the scenario, run the following command:
 
 #### Materials used in the scenario
 
-1. Openshift routes guide:
+1. OpenShift routes guide:
 https://docs.openshift.com/container-platform/3.9/dev_guide/routes.html
 
-2. Openshift Binary build guide:
+2. OpenShift Binary build guide:
 https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/binary_builds.html
 
 

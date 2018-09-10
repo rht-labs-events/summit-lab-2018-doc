@@ -8,7 +8,7 @@ Dashboard: Labs Generic
 
 ### Intro
 
-In this scenario we will take a closer look at the OpenShift Container Platform scheduler, how limits works, and how it can impact your platforms behaviour and performance. At the end of this scenario, you should have a better understanding of why you should care about the OpenShift Container Platform scheduler.
+In this scenario we will take a closer look at the OpenShift Container Platform scheduler, how limits works, and how it can impact your platforms behavior and performance. At the end of this scenario, you should have a better understanding of why you should care about the OpenShift Container Platform scheduler.
 
 The Labs Generic dashboard should look something like this:
 [![alt text](img/0-init.png)](https://rht-labs-events.github.io/summit-lab-2018-doc/scenario0/img/0-init.png)
@@ -224,7 +224,7 @@ openshift.io/node-selector: zone=az1
  :
 ```
 
-If a default node selector is not defined at the project level, it will use the one from the openshift master config:
+If a default node selector is not defined at the project level, it will use the one from the OpenShift master config:
 ```
 > ssh root@master1.example.com
 > cat /etc/origin/master/master-config.yaml | grep defaultNodeSelector
@@ -257,10 +257,10 @@ When you done with the scenario, execute the following command on the  bastion h
 
 #### Materials used in the scenario
 
-1. Openshift Scheduler explained:
+1. OpenShift Scheduler explained:
 https://docs.openshift.com/container-platform/3.9/admin_guide/scheduling/scheduler-advanced.html#admin-guide-scheduling-advanced
 
-2. OpenShift Resource managment:
+2. OpenShift Resource management:
 https://blog.openshift.com/managing-compute-resources-openshiftkubernetes/
 
 

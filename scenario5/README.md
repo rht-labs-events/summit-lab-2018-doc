@@ -147,7 +147,7 @@ Now that the root cause (or at least parts of it) has been identified, attempt t
 
 There is no need to start each service independently. The `atomic-openshift-node` systemd service has `openvswitch` as one of its dependencies, so when `atomic-openshift-node` is started, `openvswitch` service is started too.
 
-Next, check that the `openvswitch` service has been started as part of starting the `atomic-openshift-node` service. The output should show somathing similar to the example below:
+Next, check that the `openvswitch` service has been started as part of starting the `atomic-openshift-node` service. The output should show someone similar to the example below:
 
 ```
 > systemctl status openvswitch

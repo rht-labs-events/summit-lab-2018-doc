@@ -201,9 +201,9 @@ touch: cannot touch '/registry/test': No space left on device
 
 Surprise :). This would be one of those cases were you would need to raise a support ticket with Red Hat support. For our lab scenario we already know which issue was hit: https://bugzilla.redhat.com/show_bug.cgi?id=1538939
 
-This should be fixed with next heketi release. To work around this issue, (information is in bugzilla) the underlying gluster cluster needs to be re-balanced.
+This should be fixed with next Heketi release. To work around this issue, (information is in Bugzilla) the underlying Gluster cluster needs to be re-balanced.
 
-Use `rsh` to access any of the gluster pods and perform the re-balancing :
+Use `rsh` to access any of the Gluster pods and perform the re-balancing :
 ```
 > oc project glusterfs
 

@@ -115,7 +115,7 @@ After a few seconds grafana should report that only 2 etcd are alive. Make sure 
 
 Use the same `etcdctl` command as executed earlier on the masters to observe the same outage in the output.
 
-The OCP cluster still performs fine, as quorum is still maintained. However, next let us see what happens when a second node is removed from the `etcd` cluster. At this point, the grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api, and without quorum all api calls are responding as "read-only".
+The OCP cluster still performs fine, as quorum is still maintained. However, next let us see what happens when a second node is removed from the `etcd` cluster. At this point, the Grafana dashboard will stop showing graphs. This is expected as Grafana uses mutable queries to the openshift api, and without quorum all api calls are responding as "read-only".
 
 Execute from the *bastion* host:
 
