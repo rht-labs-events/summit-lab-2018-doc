@@ -64,7 +64,7 @@ Hostname              |Internal IP    |Description
 
 * You can ssh as `root` from the bastion to any of the OpenShift Container Platform cluster nodes.
 
-* When using ssh to access the lab with the user `lab-user`, it is possible to `sudo -i` to get `root` access.
+* When using ssh to access the lab with the user `lab-user`, it is possible to `*sudo* -i` to get `root` access.
 
 * The environment contains a few useful applications which will help you in knowing your cluster state.
 
@@ -120,7 +120,7 @@ Builds related information.
 
 #### Jenkis/Jenkins Monitor
 
-Jenkins and its `Build Monitor Plugin` is deployed as part of the Lab. This tool is not required to solve any scenario during the Lab session but is used to fire up Builds and Deployments automatically during the session. `Build Monitor Plugin` is an useful tool to radiate information to DevOps teams and get a quick feedback from Builds and Deployments after any new commited code to our applications.
+Jenkins and its `Build Monitor Plugin` is deployed as part of the Lab. This tool is not required to solve any scenario during the Lab session but is used to fire up Builds and Deployments automatically during the session. `Build Monitor Plugin` is an useful tool to radiate information to DevOps teams and get a quick feedback from Builds and Deployments after any new committed code to our applications.
 
 The view we have pre-configured for this Lab is showing the actual status for our demo app which is built and deployed to different environments (dev, test, uat) in the OpenShift Cluster.
 
@@ -130,14 +130,18 @@ The view we have pre-configured for this Lab is showing the actual status for ou
 
 Open a new web browser window (or tab), then enter the URL below. Use the credentials provided during the lab session:
 
-* *OpenShift console:* `https://console-<YOUR-GUID>.rhpds.opentlc.com`
+* *OpenShift console:* `https://console-<YOUR-GUID>.<TYPE>.opentlc.com`
+
+:heavy_check_mark: TIP: `<TYPE>` refers to the environment that is being deployed. If deployed from RHPDS, use `rhpds`, otherwise, use `generic`
 
 :heavy_check_mark: TIP: You can also find these URLs in the email you received when you provisioned the demo environment.
 
 
 ### Review the Environment
 
-Once the OpenShift environment is up and running, log in to the *OpenShift Container Platform Web Console* at `https://console-<YOUR-GUID>.rhpds.opentlc.com/console`.
+Once the OpenShift environment is up and running, log in to the *OpenShift Container Platform Web Console* at `https://console-<YOUR-GUID>.<TYPE>.opentlc.com/console`.
+
+:heavy_check_mark: TIP: `<TYPE>` refers to the environment that is being deployed. If deployed from RHPDS, use `rhpds`, otherwise, use `generic`
 
 :heavy_check_mark: TIP: In order to log into the console, use the credentials provided in the lab slides.
 
